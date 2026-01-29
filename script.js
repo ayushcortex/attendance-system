@@ -1,103 +1,63 @@
-let video = document.getElementById("video");
-
-/* ✅ ALLOWED STUDENTS (MASTER LIST) */
-const allowedStudents = [
-  { email: "ayush1@gmail.com", name: "Ayush", roll: "72" },
-  { email: "student2@gmail.com", name: "Amit",  roll: "102" },
-  { email: "student3@gmail.com", name: "Neha",  roll: "103" },
-  { email: "student4@gmail.com", name: "Priya", roll: "104" },
-  { email: "student5@gmail.com", name: "Arjun", roll: "105" }
-];
-
-/* PAGE 1 → PAGE 2 */
-function goNext() {
-  const email = document.getElementById("email").value.trim().toLowerCase();
-
-  if (!email) {
-    alert("Please enter email");
-    return;
-  }
-
-  // store entered email (even if wrong)
-  localStorage.setItem("enteredEmail", email);
-
-  const student = allowedStudents.find(
-    s => s.email.toLowerCase() === email
-  );
-
-  if (!student) {
-    localStorage.setItem("authStatus", "unauthorized");
-    alert("❌ Unauthorized email");
-    return;
-  }
-
-  localStorage.setItem("authStatus", "email_verified");
-  document.getElementById("page1").style.display = "none";
-  document.getElementById("page2").style.display = "block";
+* {
+  box-sizing: border-box;
 }
 
-/* BACK */
-function goBack() {
-  document.getElementById("page2").style.display = "none";
-  document.getElementById("page1").style.display = "block";
-
-  if (video.srcObject) {
-    video.srcObject.getTracks().forEach(t => t.stop());
-    video.srcObject = null;
-  }
+body {
+  margin: 0;
+  padding: 0;
+  background: #f2f2f2;
+  font-family: Arial, sans-serif;
 }
 
-/* CAMERA */
-function startCamera() {
-  navigator.mediaDevices.getUserMedia({ video: true })
-    .then(stream => video.srcObject = stream)
-    .catch(() => alert("Camera access denied"));
+.box {
+  width: 90%;
+  max-width: 350px;
+  background: white;
+  padding: 20px;
+  margin: 100px auto;
+  text-align: center;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
-/* NAME + ROLL CHECK + STORE */
-function capture() {
-  const email = localStorage.getItem("enteredEmail");
-  const name  = document.getElementById("name").value.trim();
-  const roll  = document.getElementById("roll").value.trim();
+h2 {
+  margin-bottom: 15px;
+}
 
-  // store entered values (even if wrong)
-  localStorage.setItem("enteredName", name);
-  localStorage.setItem("enteredRoll", roll);
+input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  font-size: 14px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
 
-  if (!name || !roll) {
-    alert("Enter Name and Roll Number");
-    return;
-  }
+button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 12px;
+  font-size: 15px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
 
-  const student = allowedStudents.find(
-    s => s.email.toLowerCase() === email
-  );
+button:hover {
+  background: #0056b3;
+}
 
-  if (!student) {
-    localStorage.setItem("authStatus", "unauthorized");
-    alert("❌ Unauthorized student");
-    return;
-  }
+.back-btn {
+  background: #6c757d;
+}
 
-  if (
-    student.name.toLowerCase() !== name.toLowerCase() ||
-    student.roll !== roll
-  ) {
-    localStorage.setItem("authStatus", "unauthorized");
-    alert("❌ Name or Roll Number incorrect");
-    return;
-  }
+.back-btn:hover {
+  background: #545b62;
+}
 
-  if (!video.srcObject) {
-    alert("Camera not started");
-    return;
-  }
-
-  // fully authorized
-  localStorage.setItem("authStatus", "authorized");
-  localStorage.setItem("verifiedName", name);
-  localStorage.setItem("verifiedRoll", roll);
-
-  document.getElementById("status").innerText =
-    "✔ Authorized: Email, Name & Roll verified";
+#status {
+  margin-top: 12px;
+  font-weight: bold;
 }
