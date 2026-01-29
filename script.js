@@ -2,7 +2,7 @@ let video = document.getElementById("video");
 
 /* ✅ ALLOWED STUDENTS (MASTER LIST) */
 const allowedStudents = [
-  { email: "student1@gmail.com", name: "Rahul", roll: "101" },
+  { email: "ayush1@gmail.com", name: "Ayush", roll: "72" },
   { email: "student2@gmail.com", name: "Amit",  roll: "102" },
   { email: "student3@gmail.com", name: "Neha",  roll: "103" },
   { email: "student4@gmail.com", name: "Priya", roll: "104" },
