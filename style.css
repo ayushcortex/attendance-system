@@ -1,0 +1,53 @@
+body {
+  background: #f2f2f2;
+  font-family: Arial, sans-serif;
+}
+
+.box {
+  width: 320px;
+  background: white;
+  padding: 20px;
+  margin: 100px auto;
+  text-align: center;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+input, button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+button {
+  background: #007bff;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #0056b3;
+}
+
+/* BACK BUTTON */
+.back-btn {
+  background: #6c757d;
+}
+
+.back-btn:hover {
+  background: #545b62;
+}
+
+video {
+  width: 100%;
+  margin-top: 10px;
+  border-radius: 6px;
+}
+
+#status {
+  margin-top: 10px;
+  color: green;
+  font-weight: bold;
+}
