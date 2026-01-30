@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Face Attendance System</title>
+  <title>Face Attendance with Blink Detection</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link rel="stylesheet" href="style.css">
@@ -13,7 +13,6 @@
 </head>
 <body>
 
-<!-- FACE VERIFICATION -->
 <div class="box">
   <h2>Face Verification</h2>
 
@@ -24,15 +23,15 @@
   <p><strong>Name:</strong> <span id="name">---</span></p>
   <p><strong>Roll:</strong> <span id="roll">---</span></p>
 
+  <p id="blinkStatus">Blink your eyes</p>
+
   <button id="confirmBtn" disabled>Confirm Attendance</button>
 
   <p id="status"></p>
 </div>
 
-<!-- ATTENDANCE TABLE -->
 <div class="box">
   <h2>Attendance Records</h2>
-
   <table id="attendanceTable">
     <thead>
       <tr>
