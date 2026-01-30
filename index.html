@@ -2,9 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Attendance System</title>
+  <title>AI Attendance System</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <link rel="stylesheet" href="style.css">
+
+  <!-- Face API -->
+  <script defer src="https://cdn.jsdelivr.net/npm/face-api.js"></script>
+  <script defer src="script.js"></script>
 </head>
 <body>
 
@@ -15,14 +20,15 @@
 </div>
 
 <div class="box" id="page2" style="display:none">
-  <h2>Student Details</h2>
-  <input type="text" id="name" placeholder="Enter Name">
-  <input type="text" id="roll" placeholder="Enter Roll Number">
-  <button id="verifyBtn">Verify</button>
+  <h2>Face Verification</h2>
+
+  <video id="video" autoplay muted></video>
+
+  <button id="verifyBtn">Verify Face</button>
   <button id="backBtn" class="back-btn">⬅ Back</button>
+
   <p id="status"></p>
 </div>
 
-<script src="script.js"></script>
 </body>
 </html>
