@@ -8,9 +8,9 @@ btn.onclick = async () => {
     });
     video.srcObject = stream;
     await video.play();
-    alert("Camera opened ✅");
+    alert("Camera opened");
   } catch (e) {
-    alert("Camera blocked ❌");
+    alert("Camera blocked by device");
     console.error(e);
   }
 };
