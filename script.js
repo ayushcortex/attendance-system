@@ -4,9 +4,9 @@ const confirmBtn = document.getElementById("confirmBtn");
 const nameSpan = document.getElementById("name");
 const rollSpan = document.getElementById("roll");
 const statusText = document.getElementById("status");
+const blinkStatus = document.getElementById("blinkStatus");
 const tableBody = document.querySelector("#attendanceTable tbody");
 
-// FACE DATABASE
 const students = [
   { label: "rahul", name: "Rahul", roll: "101" },
   { label: "amit",  name: "Amit",  roll: "102" },
@@ -16,6 +16,8 @@ const students = [
 ];
 
 let recognizedStudent = null;
+let blinked = false;
+let eyeClosed = false;
 
 // LOAD MODELS
 const MODEL_URL = "https://justadudewhohacks.github.io/face-api.js/models";
@@ -28,46 +30,62 @@ Promise.all([
   statusText.innerText = "Models loaded. Tap Start Camera.";
 });
 
-// LOAD KNOWN FACES
+// LOAD KNOWN FACES (MULTIPLE PHOTOS)
 async function loadKnownFaces() {
-  return Promise.all(
-    students.map(async s => {
-      const img = await faceapi.fetchImage(`known_faces/${s.label}.jpg`);
+  const labeled = [];
+
+  for (const s of students) {
+    const descriptors = [];
+
+    for (let i = 1; i <= 3; i++) {
+      const img = await faceapi.fetchImage(`known_faces/${s.label}/${i}.jpg`);
       const det = await faceapi
         .detectSingleFace(img)
         .withFaceLandmarks()
         .withFaceDescriptor();
 
-      return new faceapi.LabeledFaceDescriptors(s.label, [det.descriptor]);
-    })
-  );
+      if (det) descriptors.push(det.descriptor);
+    }
+
+    if (descriptors.length > 0) {
+      labeled.push(new faceapi.LabeledFaceDescriptors(s.label, descriptors));
+    }
+  }
+  return labeled;
 }
 
-// START CAMERA (USER CLICK)
+// START CAMERA
 startCamBtn.onclick = async () => {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "user" },
-      audio: false
-    });
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode: "user" },
+    audio: false
+  });
 
-    video.srcObject = stream;
-    await video.play();
+  video.srcObject = stream;
+  await video.play();
 
-    startCamBtn.disabled = true;
-    startCamBtn.innerText = "Camera Started";
-    statusText.innerText = "Scanning face...";
-
-    startRecognition();
-  } catch (err) {
-    alert("Camera permission denied");
-  }
+  startCamBtn.disabled = true;
+  startCamBtn.innerText = "Camera Started";
+  statusText.innerText = "Scanning face...";
+  startRecognition();
 };
 
-// FACE RECOGNITION LOOP
+// BLINK LOGIC (EAR)
+function eyeAspectRatio(eye) {
+  const A = distance(eye[1], eye[5]);
+  const B = distance(eye[2], eye[4]);
+  const C = distance(eye[0], eye[3]);
+  return (A + B) / (2.0 * C);
+}
+
+function distance(p1, p2) {
+  return Math.hypot(p1.x - p2.x, p1.y - p2.y);
+}
+
+// FACE + BLINK LOOP
 async function startRecognition() {
   const labeledFaces = await loadKnownFaces();
-  const matcher = new faceapi.FaceMatcher(labeledFaces, 0.5);
+  const matcher = new faceapi.FaceMatcher(labeledFaces, 0.65);
 
   setInterval(async () => {
     const det = await faceapi
@@ -77,24 +95,39 @@ async function startRecognition() {
 
     if (!det) return;
 
+    // BLINK DETECTION
+    const leftEye = det.landmarks.getLeftEye();
+    const rightEye = det.landmarks.getRightEye();
+
+    const ear =
+      (eyeAspectRatio(leftEye) + eyeAspectRatio(rightEye)) / 2;
+
+    if (ear < 0.22) {
+      eyeClosed = true;
+    }
+
+    if (ear > 0.25 && eyeClosed) {
+      blinked = true;
+      blinkStatus.innerText = "Blink detected ✅";
+    }
+
     const result = matcher.findBestMatch(det.descriptor);
 
     if (result.label !== "unknown") {
       recognizedStudent = students.find(s => s.label === result.label);
-
       nameSpan.innerText = recognizedStudent.name;
       rollSpan.innerText = recognizedStudent.roll;
 
-      confirmBtn.disabled = false;
-      statusText.innerText = "Face recognized. Confirm attendance.";
+      if (blinked) {
+        confirmBtn.disabled = false;
+        statusText.innerText = "Face + Blink verified. Confirm attendance.";
+      }
     }
-  }, 1200);
+  }, 1000);
 }
 
 // SAVE ATTENDANCE
 confirmBtn.onclick = () => {
-  if (!recognizedStudent) return;
-
   const now = new Date();
 
   const record = {
@@ -115,7 +148,7 @@ confirmBtn.onclick = () => {
   confirmBtn.disabled = true;
 };
 
-// RENDER TABLE
+// TABLE RENDER
 function renderAttendance() {
   tableBody.innerHTML = "";
   const data = JSON.parse(localStorage.getItem("attendance") || "[]");
