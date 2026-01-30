@@ -4,13 +4,13 @@ const btn = document.getElementById("startCamBtn");
 btn.onclick = async () => {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "user" }
+      video: true
     });
     video.srcObject = stream;
     await video.play();
-    alert("Camera opened ✅");
-  } catch (e) {
+    alert("Camera opened successfully ✅");
+  } catch (err) {
     alert("Camera blocked ❌");
-    console.error(e);
+    console.error(err);
   }
 };
