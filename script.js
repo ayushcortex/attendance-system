@@ -1,103 +1,85 @@
 const video = document.getElementById("video");
+const nameSpan = document.getElementById("name");
+const rollSpan = document.getElementById("roll");
 const statusText = document.getElementById("status");
+const confirmBtn = document.getElementById("confirmBtn");
 
+// 🔹 FACE DATABASE (label = filename)
 const students = [
-  "rahul",
-  "amit",
-  "neha",
-  "priya",
-  "arjun"
+  { label: "rahul", name: "Rahul", roll: "101" },
+  { label: "amit",  name: "Amit",  roll: "102" },
+  { label: "neha",  name: "Neha",  roll: "103" },
+  { label: "priya", name: "Priya", roll: "104" },
+  { label: "arjun", name: "Arjun", roll: "105" }
 ];
 
-// Load models
+// 🔹 Load models
 const MODEL_URL = "https://justadudewhohacks.github.io/face-api.js/models";
 
 Promise.all([
   faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
   faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
   faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
-]).then(() => {
-  console.log("Models loaded");
-});
+]).then(startCamera);
 
-// Camera
+// 🔹 Start camera (iPhone safe)
 async function startCamera() {
-  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode: "user" },
+    audio: false
+  });
   video.srcObject = stream;
+  await video.play();
+  recognizeLoop();
 }
 
-// Load known faces
+// 🔹 Load known faces
 async function loadKnownFaces() {
   return Promise.all(
-    students.map(async name => {
-      const img = await faceapi.fetchImage(`known_faces/${name}.jpg`);
-      const detection = await faceapi
+    students.map(async s => {
+      const img = await faceapi.fetchImage(`known_faces/${s.label}.jpg`);
+      const det = await faceapi
         .detectSingleFace(img)
         .withFaceLandmarks()
         .withFaceDescriptor();
 
-      return new faceapi.LabeledFaceDescriptors(name, [detection.descriptor]);
+      return new faceapi.LabeledFaceDescriptors(
+        s.label,
+        [det.descriptor]
+      );
     })
   );
 }
 
-// Eye check (liveness)
-async function eyesDetected() {
-  const detection = await faceapi
-    .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
-    .withFaceLandmarks();
-
-  if (!detection) return false;
-
-  return (
-    detection.landmarks.getLeftEye().length > 0 &&
-    detection.landmarks.getRightEye().length > 0
-  );
-}
-
-// Face match
-async function recognize() {
+// 🔹 Face recognition loop
+async function recognizeLoop() {
   const labeledFaces = await loadKnownFaces();
   const matcher = new faceapi.FaceMatcher(labeledFaces, 0.5);
 
-  const detection = await faceapi
-    .detectSingleFace(video)
-    .withFaceLandmarks()
-    .withFaceDescriptor();
+  setInterval(async () => {
+    const det = await faceapi
+      .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+      .withFaceLandmarks()
+      .withFaceDescriptor();
 
-  if (!detection) return false;
+    if (!det) return;
 
-  const result = matcher.findBestMatch(detection.descriptor);
-  return result.label !== "unknown";
+    const result = matcher.findBestMatch(det.descriptor);
+
+    if (result.label !== "unknown") {
+      const student = students.find(s => s.label === result.label);
+
+      nameSpan.innerText = student.name;
+      rollSpan.innerText = student.roll;
+
+      confirmBtn.disabled = false;
+      statusText.innerText = "Face detected. Please confirm.";
+    }
+  }, 1200);
 }
 
-// Buttons
-document.getElementById("nextBtn").onclick = () => {
-  document.getElementById("page1").style.display = "none";
-  document.getElementById("page2").style.display = "block";
-  startCamera();
-};
-
-document.getElementById("verifyBtn").onclick = async () => {
-  statusText.innerText = "Checking liveness...";
-
-  if (!(await eyesDetected())) {
-    statusText.style.color = "red";
-    statusText.innerText = "❌ Eyes not detected";
-    return;
-  }
-
-  statusText.innerText = "Matching face...";
-
-  if (await recognize()) {
-    statusText.style.color = "green";
-    statusText.innerText = "✅ Authorized – Attendance Marked";
-  } else {
-    statusText.style.color = "red";
-    statusText.innerText = "❌ Face not recognized";
-  }
-};
-
-document.getElementById("backBtn").onclick = () => {
-  location.reload();
+// 🔹 Final confirmation
+confirmBtn.onclick = () => {
+  statusText.style.color = "green";
+  statusText.innerText = "✅ Authorized – Attendance Marked";
 };
