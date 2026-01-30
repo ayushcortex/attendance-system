@@ -1,60 +1,48 @@
-/* ✅ ALLOWED STUDENTS */
-const students = [
-  { email: "ayush1@gmail.com", name: "ayush", roll: "72" },
-  { email: "student2@gmail.com", name: "Amit", roll: "102" },
-  { email: "student3@gmail.com", name: "Neha", roll: "103" },
-  { email: "student4@gmail.com", name: "Priya", roll: "104" },
-  { email: "student5@gmail.com", name: "Arjun", roll: "105" }
-];
-
-function goNext() {
-  const email = document.getElementById("email").value.trim().toLowerCase();
-
-  if (!email) {
-    alert("Enter email");
-    return;
-  }
-
-  const user = students.find(s => s.email.toLowerCase() === email);
-
-  if (!user) {
-    alert("❌ Unauthorized email");
-    return;
-  }
-
-  localStorage.setItem("email", email);
-  document.getElementById("page1").style.display = "none";
-  document.getElementById("page2").style.display = "block";
+* {
+  box-sizing: border-box;
 }
 
-function goBack() {
-  document.getElementById("page2").style.display = "none";
-  document.getElementById("page1").style.display = "block";
-  document.getElementById("status").innerText = "";
+body {
+  background: #f2f2f2;
+  font-family: Arial, sans-serif;
 }
 
-function verify() {
-  const email = localStorage.getItem("email");
-  const name = document.getElementById("name").value.trim();
-  const roll = document.getElementById("roll").value.trim();
+.box {
+  width: 90%;
+  max-width: 350px;
+  background: white;
+  padding: 20px;
+  margin: 100px auto;
+  text-align: center;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
 
-  const user = students.find(s => s.email.toLowerCase() === email);
+input, button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  font-size: 14px;
+}
 
-  if (!name || !roll) {
-    alert("Enter name and roll number");
-    return;
-  }
+button {
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+}
 
-  if (
-    user.name.toLowerCase() === name.toLowerCase() &&
-    user.roll === roll
-  ) {
-    document.getElementById("status").style.color = "green";
-    document.getElementById("status").innerText =
-      "✔ Authorized. Attendance marked.";
-  } else {
-    document.getElementById("status").style.color = "red";
-    document.getElementById("status").innerText =
-      "❌ Unauthorized name or roll number";
-  }
+.back-btn {
+  background: #6c757d;
+}
+
+video {
+  width: 100%;
+  margin-top: 10px;
+  border-radius: 6px;
+}
+
+#status {
+  margin-top: 10px;
+  font-weight: bold;
 }
