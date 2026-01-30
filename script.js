@@ -62,20 +62,30 @@ async function loadKnownFaces() {
 
 // ===== START CAMERA =====
 startCamBtn.onclick = async () => {
-  const stream = await navigator.mediaDevices.getUserMedia({
-    video: true,
-    audio: false
-  });
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "user" },
+      audio: false
+    });
 
-  video.srcObject = stream;
-  await video.play();
+    video.srcObject = stream;
 
-  startCamBtn.disabled = true;
-  startCamBtn.innerText = "Camera Started";
-  statusText.innerText = "Looking for face…";
+    video.onloadedmetadata = () => {
+      video.play();
+    };
 
-  startRecognition();
+    startCamBtn.disabled = true;
+    startCamBtn.innerText = "Camera Started";
+    statusText.innerText = "Looking for face…";
+
+    startRecognition();
+
+  } catch (err) {
+    console.error(err);
+    alert("Camera permission blocked");
+  }
 };
+
 
 // ===== FACE RECOGNITION LOOP =====
 async function startRecognition() {
