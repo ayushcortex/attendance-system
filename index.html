@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>AI Attendance System</title>
+  <title>Face Based Attendance</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link rel="stylesheet" href="style.css">
@@ -13,19 +13,15 @@
 </head>
 <body>
 
-<div class="box" id="page1">
-  <h2>Email Login</h2>
-  <input type="email" id="email" placeholder="Enter Email">
-  <button id="nextBtn">Next</button>
-</div>
-
-<div class="box" id="page2" style="display:none">
+<div class="box">
   <h2>Face Verification</h2>
 
-  <video id="video" autoplay muted></video>
+  <video id="video" autoplay muted playsinline></video>
 
-  <button id="verifyBtn">Verify Face</button>
-  <button id="backBtn" class="back-btn">⬅ Back</button>
+  <p><strong>Name:</strong> <span id="name">---</span></p>
+  <p><strong>Roll:</strong> <span id="roll">---</span></p>
+
+  <button id="confirmBtn" disabled>Confirm</button>
 
   <p id="status"></p>
 </div>
