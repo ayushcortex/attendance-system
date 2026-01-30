@@ -4,33 +4,25 @@
   <meta charset="UTF-8">
   <title>Attendance System</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- CSS -->
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<!-- PAGE 1 -->
 <div class="box" id="page1">
   <h2>Email Login</h2>
   <input type="email" id="email" placeholder="Enter Email">
   <button id="nextBtn">Next</button>
 </div>
 
-<!-- PAGE 2 -->
 <div class="box" id="page2" style="display:none">
   <h2>Student Details</h2>
-
   <input type="text" id="name" placeholder="Enter Name">
   <input type="text" id="roll" placeholder="Enter Roll Number">
-
-  <button onclick="verify()">Verify</button>
-  <button class="back-btn" onclick="goBack()">⬅ Back</button>
-
+  <button id="verifyBtn">Verify</button>
+  <button id="backBtn" class="back-btn">⬅ Back</button>
   <p id="status"></p>
 </div>
 
-<!-- JS -->
 <script src="script.js"></script>
 </body>
 </html>
