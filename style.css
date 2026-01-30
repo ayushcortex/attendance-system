@@ -1,6 +1,4 @@
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 
 body {
   background: #f2f2f2;
@@ -12,7 +10,7 @@ body {
   max-width: 380px;
   background: white;
   padding: 20px;
-  margin: 30px auto;
+  margin: 25px auto;
   text-align: center;
   border-radius: 8px;
   box-shadow: 0 0 10px rgba(0,0,0,0.1);
@@ -40,7 +38,7 @@ button:disabled {
   background: #999;
 }
 
-#status {
+#status, #blinkStatus {
   margin-top: 10px;
   font-weight: bold;
 }
