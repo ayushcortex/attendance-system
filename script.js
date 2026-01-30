@@ -1,63 +1,103 @@
-document.addEventListener("DOMContentLoaded", () => {
+const video = document.getElementById("video");
+const statusText = document.getElementById("status");
 
-  const students = [
-    { email: "student1@gmail.com", name: "Rahul", roll: "101" },
-    { email: "student2@gmail.com", name: "Amit", roll: "102" },
-    { email: "student3@gmail.com", name: "Neha", roll: "103" },
-    { email: "student4@gmail.com", name: "Priya", roll: "104" },
-    { email: "student5@gmail.com", name: "Arjun", roll: "105" }
-  ];
+const students = [
+  "rahul",
+  "amit",
+  "neha",
+  "priya",
+  "arjun"
+];
 
-  const nextBtn = document.getElementById("nextBtn");
-  const verifyBtn = document.getElementById("verifyBtn");
-  const backBtn = document.getElementById("backBtn");
+// Load models
+const MODEL_URL = "https://justadudewhohacks.github.io/face-api.js/models";
 
-  nextBtn.addEventListener("click", () => {
-    const email = document.getElementById("email").value.trim().toLowerCase();
-    if (!email) {
-      alert("Enter email");
-      return;
-    }
-
-    const user = students.find(s => s.email === email);
-    if (!user) {
-      alert("❌ Unauthorized email");
-      return;
-    }
-
-    localStorage.setItem("email", email);
-    document.getElementById("page1").style.display = "none";
-    document.getElementById("page2").style.display = "block";
-  });
-
-  verifyBtn.addEventListener("click", () => {
-    const email = localStorage.getItem("email");
-    const name = document.getElementById("name").value.trim();
-    const roll = document.getElementById("roll").value.trim();
-
-    const user = students.find(s => s.email === email);
-
-    if (!name || !roll) {
-      alert("Enter name and roll");
-      return;
-    }
-
-    if (
-      user.name.toLowerCase() === name.toLowerCase() &&
-      user.roll === roll
-    ) {
-      document.getElementById("status").style.color = "green";
-      document.getElementById("status").innerText = "✔ Authorized";
-    } else {
-      document.getElementById("status").style.color = "red";
-      document.getElementById("status").innerText = "❌ Unauthorized";
-    }
-  });
-
-  backBtn.addEventListener("click", () => {
-    document.getElementById("page2").style.display = "none";
-    document.getElementById("page1").style.display = "block";
-    document.getElementById("status").innerText = "";
-  });
-
+Promise.all([
+  faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+  faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+  faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+]).then(() => {
+  console.log("Models loaded");
 });
+
+// Camera
+async function startCamera() {
+  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+  video.srcObject = stream;
+}
+
+// Load known faces
+async function loadKnownFaces() {
+  return Promise.all(
+    students.map(async name => {
+      const img = await faceapi.fetchImage(`known_faces/${name}.jpg`);
+      const detection = await faceapi
+        .detectSingleFace(img)
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+
+      return new faceapi.LabeledFaceDescriptors(name, [detection.descriptor]);
+    })
+  );
+}
+
+// Eye check (liveness)
+async function eyesDetected() {
+  const detection = await faceapi
+    .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+    .withFaceLandmarks();
+
+  if (!detection) return false;
+
+  return (
+    detection.landmarks.getLeftEye().length > 0 &&
+    detection.landmarks.getRightEye().length > 0
+  );
+}
+
+// Face match
+async function recognize() {
+  const labeledFaces = await loadKnownFaces();
+  const matcher = new faceapi.FaceMatcher(labeledFaces, 0.5);
+
+  const detection = await faceapi
+    .detectSingleFace(video)
+    .withFaceLandmarks()
+    .withFaceDescriptor();
+
+  if (!detection) return false;
+
+  const result = matcher.findBestMatch(detection.descriptor);
+  return result.label !== "unknown";
+}
+
+// Buttons
+document.getElementById("nextBtn").onclick = () => {
+  document.getElementById("page1").style.display = "none";
+  document.getElementById("page2").style.display = "block";
+  startCamera();
+};
+
+document.getElementById("verifyBtn").onclick = async () => {
+  statusText.innerText = "Checking liveness...";
+
+  if (!(await eyesDetected())) {
+    statusText.style.color = "red";
+    statusText.innerText = "❌ Eyes not detected";
+    return;
+  }
+
+  statusText.innerText = "Matching face...";
+
+  if (await recognize()) {
+    statusText.style.color = "green";
+    statusText.innerText = "✅ Authorized – Attendance Marked";
+  } else {
+    statusText.style.color = "red";
+    statusText.innerText = "❌ Face not recognized";
+  }
+};
+
+document.getElementById("backBtn").onclick = () => {
+  location.reload();
+};
