@@ -5,12 +5,11 @@ const confirmBtn = document.getElementById("confirmBtn");
 const nameSpan = document.getElementById("name");
 const rollSpan = document.getElementById("roll");
 const statusText = document.getElementById("status");
-const blinkStatus = document.getElementById("blinkStatus");
 const tableBody = document.querySelector("#attendanceTable tbody");
 
 // ===== STUDENT DATABASE =====
 const students = [
-  { label: "ayush", name: "Ayush", roll: "72" },
+  { label: "rahul", name: "Rahul", roll: "101" },
   { label: "amit",  name: "Amit",  roll: "102" },
   { label: "neha",  name: "Neha",  roll: "103" },
   { label: "priya", name: "Priya", roll: "104" },
@@ -18,10 +17,8 @@ const students = [
 ];
 
 let recognizedStudent = null;
-let eyeClosed = false;
-let blinked = false;
 
-// ===== LOAD FACE-API MODELS =====
+// ===== LOAD MODELS =====
 const MODEL_URL = "https://justadudewhohacks.github.io/face-api.js/models";
 
 Promise.all([
@@ -32,7 +29,7 @@ Promise.all([
   statusText.innerText = "Models loaded. Click Start Camera.";
 });
 
-// ===== LOAD KNOWN FACES (MULTIPLE PHOTOS PER PERSON) =====
+// ===== LOAD KNOWN FACES (MULTIPLE PHOTOS) =====
 async function loadKnownFaces() {
   const labeledDescriptors = [];
 
@@ -40,18 +37,17 @@ async function loadKnownFaces() {
     const descriptors = [];
 
     for (let i = 1; i <= 3; i++) {
-      const imgPath = `known_faces/${s.label}/${i}.jpg`;
+      const path = `known_faces/${s.label}/${i}.jpg`;
+
       try {
-        const img = await faceapi.fetchImage(imgPath);
+        const img = await faceapi.fetchImage(path);
         const det = await faceapi
           .detectSingleFace(img)
           .withFaceLandmarks()
           .withFaceDescriptor();
 
         if (det) descriptors.push(det.descriptor);
-      } catch (e) {
-        console.warn("Image missing:", imgPath);
-      }
+      } catch {}
     }
 
     if (descriptors.length > 0) {
@@ -64,44 +60,27 @@ async function loadKnownFaces() {
   return labeledDescriptors;
 }
 
-// ===== START CAMERA (USER CLICK) =====
+// ===== START CAMERA =====
 startCamBtn.onclick = async () => {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: true,
-      audio: false
-    });
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: true,
+    audio: false
+  });
 
-    video.srcObject = stream;
-    await video.play();
+  video.srcObject = stream;
+  await video.play();
 
-    startCamBtn.disabled = true;
-    startCamBtn.innerText = "Camera Started";
-    statusText.innerText = "Looking for face… Blink once.";
+  startCamBtn.disabled = true;
+  startCamBtn.innerText = "Camera Started";
+  statusText.innerText = "Looking for face…";
 
-    startRecognition();
-
-  } catch (err) {
-    alert("Camera permission denied");
-  }
+  startRecognition();
 };
 
-// ===== BLINK DETECTION HELPERS =====
-function distance(p1, p2) {
-  return Math.hypot(p1.x - p2.x, p1.y - p2.y);
-}
-
-function eyeAspectRatio(eye) {
-  const A = distance(eye[1], eye[5]);
-  const B = distance(eye[2], eye[4]);
-  const C = distance(eye[0], eye[3]);
-  return (A + B) / (2.0 * C);
-}
-
-// ===== FACE + BLINK RECOGNITION LOOP =====
+// ===== FACE RECOGNITION LOOP =====
 async function startRecognition() {
   const knownFaces = await loadKnownFaces();
-  const matcher = new faceapi.FaceMatcher(knownFaces, 0.65);
+  const matcher = new faceapi.FaceMatcher(knownFaces);
 
   setInterval(async () => {
     const det = await faceapi
@@ -111,33 +90,34 @@ async function startRecognition() {
 
     if (!det) return;
 
-    // ---- BLINK CHECK ----
-    const leftEye = det.landmarks.getLeftEye();
-    const rightEye = det.landmarks.getRightEye();
-    const ear =
-      (eyeAspectRatio(leftEye) + eyeAspectRatio(rightEye)) / 2;
-
-    if (ear < 0.22) eyeClosed = true;
-
-    if (ear > 0.25 && eyeClosed) {
-      blinked = true;
-      blinkStatus.innerText = "Blink detected ✅";
-    }
-
-    // ---- FACE MATCH ----
     const result = matcher.findBestMatch(det.descriptor);
 
-    if (result.label !== "unknown") {
-      recognizedStudent = students.find(s => s.label === result.label);
-
-      nameSpan.innerText = recognizedStudent.name;
-      rollSpan.innerText = recognizedStudent.roll;
-
-      if (blinked) {
-        confirmBtn.disabled = false;
-        statusText.innerText = "Face + Blink verified. Confirm attendance.";
-      }
+    if (result.label === "unknown") {
+      statusText.innerText = "Face not recognized";
+      confirmBtn.disabled = true;
+      return;
     }
+
+    // ===== MATCH PERCENTAGE =====
+    const distance = result.distance; // lower = better
+    const matchPercent = Math.round((1 - distance) * 100);
+
+    recognizedStudent = students.find(s => s.label === result.label);
+
+    nameSpan.innerText = recognizedStudent.name;
+    rollSpan.innerText = recognizedStudent.roll;
+
+    statusText.innerText = `Match: ${matchPercent}%`;
+
+    // ===== THRESHOLD =====
+    if (matchPercent >= 65) {
+      confirmBtn.disabled = false;
+      statusText.innerText = `✅ Match: ${matchPercent}% (Authorized)`;
+    } else {
+      confirmBtn.disabled = true;
+      statusText.innerText = `⚠️ Match: ${matchPercent}% (Too low)`;
+    }
+
   }, 1000);
 }
 
@@ -160,12 +140,11 @@ confirmBtn.onclick = () => {
 
   renderAttendance();
 
-  statusText.style.color = "green";
   statusText.innerText = "✅ Attendance Saved";
   confirmBtn.disabled = true;
 };
 
-// ===== RENDER ATTENDANCE TABLE =====
+// ===== RENDER TABLE =====
 function renderAttendance() {
   tableBody.innerHTML = "";
   const data = JSON.parse(localStorage.getItem("attendance") || "[]");
