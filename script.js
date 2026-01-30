@@ -8,7 +8,7 @@ const blinkStatus = document.getElementById("blinkStatus");
 const tableBody = document.querySelector("#attendanceTable tbody");
 
 const students = [
-  { label: "rahul", name: "Rahul", roll: "101" },
+  { label: "ayush", name: "Ayush", roll: "101" },
   { label: "amit",  name: "Amit",  roll: "102" },
   { label: "neha",  name: "Neha",  roll: "103" },
   { label: "priya", name: "Priya", roll: "104" },
