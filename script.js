@@ -5,7 +5,9 @@ const nameSpan = document.getElementById("name");
 const rollSpan = document.getElementById("roll");
 const statusText = document.getElementById("status");
 
-// 👤 Face database (label MUST match image name)
+const tableBody = document.querySelector("#attendanceTable tbody");
+
+// 🔹 STUDENT FACE DATABASE
 const students = [
   { label: "rahul", name: "Rahul", roll: "101" },
   { label: "amit",  name: "Amit",  roll: "102" },
@@ -16,7 +18,7 @@ const students = [
 
 let recognizedStudent = null;
 
-// 🔹 Load face-api models
+// 🔹 LOAD MODELS
 const MODEL_URL = "https://justadudewhohacks.github.io/face-api.js/models";
 
 Promise.all([
@@ -27,7 +29,7 @@ Promise.all([
   statusText.innerText = "Models loaded. Tap Start Camera.";
 });
 
-// 🔹 Load known faces
+// 🔹 LOAD KNOWN FACES
 async function loadKnownFaces() {
   return Promise.all(
     students.map(async s => {
@@ -42,7 +44,7 @@ async function loadKnownFaces() {
   );
 }
 
-// 🔹 Start camera ONLY on button click (iOS rule)
+// 🔹 START CAMERA (USER CLICK REQUIRED)
 startCamBtn.onclick = async () => {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
@@ -55,17 +57,15 @@ startCamBtn.onclick = async () => {
 
     startCamBtn.disabled = true;
     startCamBtn.innerText = "Camera Started";
-    statusText.innerText = "Scanning face...";
 
     startRecognition();
 
   } catch (err) {
     alert("Camera permission denied");
-    console.error(err);
   }
 };
 
-// 🔹 Face recognition loop
+// 🔹 FACE RECOGNITION LOOP
 async function startRecognition() {
   const labeledFaces = await loadKnownFaces();
   const matcher = new faceapi.FaceMatcher(labeledFaces, 0.5);
@@ -87,20 +87,51 @@ async function startRecognition() {
       rollSpan.innerText = recognizedStudent.roll;
 
       confirmBtn.disabled = false;
-      statusText.innerText = "Face recognized. Please confirm.";
+      statusText.innerText = "Face recognized. Confirm attendance.";
     }
   }, 1200);
 }
 
-// 🔹 Final confirmation
+// 🔹 SAVE ATTENDANCE
 confirmBtn.onclick = () => {
-  if (!recognizedStudent) {
-    statusText.style.color = "red";
-    statusText.innerText = "❌ Unauthorized";
-    return;
-  }
+  if (!recognizedStudent) return;
+
+  const now = new Date();
+
+  const record = {
+    name: recognizedStudent.name,
+    roll: recognizedStudent.roll,
+    date: now.toLocaleDateString(),
+    time: now.toLocaleTimeString()
+  };
+
+  const data = JSON.parse(localStorage.getItem("attendance") || "[]");
+  data.push(record);
+  localStorage.setItem("attendance", JSON.stringify(data));
+
+  renderAttendance();
 
   statusText.style.color = "green";
-  statusText.innerText =
-    `✅ Authorized: ${recognizedStudent.name} (Roll ${recognizedStudent.roll})`;
+  statusText.innerText = "✅ Attendance Saved";
+
+  confirmBtn.disabled = true;
 };
+
+// 🔹 LOAD TABLE
+function renderAttendance() {
+  tableBody.innerHTML = "";
+  const data = JSON.parse(localStorage.getItem("attendance") || "[]");
+
+  data.forEach(r => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${r.name}</td>
+      <td>${r.roll}</td>
+      <td>${r.date}</td>
+      <td>${r.time}</td>
+    `;
+    tableBody.appendChild(row);
+  });
+}
+
+renderAttendance();
