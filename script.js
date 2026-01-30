@@ -2,13 +2,14 @@ const video = document.getElementById("video");
 const nameSpan = document.getElementById("name");
 const rollSpan = document.getElementById("roll");
 const statusText = document.getElementById("status");
+const startCamBtn = document.getElementById("startCamBtn");
 const confirmBtn = document.getElementById("confirmBtn");
 
-// 🔹 FACE DATABASE (label = filename)
+// 🔹 Face database
 const students = [
   { label: "rahul", name: "Rahul", roll: "101" },
-  { label: "amit",  name: "Amit",  roll: "102" },
-  { label: "neha",  name: "Neha",  roll: "103" },
+  { label: "amit", name: "Amit", roll: "102" },
+  { label: "neha", name: "Neha", roll: "103" },
   { label: "priya", name: "Priya", roll: "104" },
   { label: "arjun", name: "Arjun", roll: "105" }
 ];
@@ -20,18 +21,9 @@ Promise.all([
   faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
   faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
   faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
-]).then(startCamera);
-
-// 🔹 Start camera (iPhone safe)
-async function startCamera() {
-  const stream = await navigator.mediaDevices.getUserMedia({
-    video: { facingMode: "user" },
-    audio: false
-  });
-  video.srcObject = stream;
-  await video.play();
-  recognizeLoop();
-}
+]).then(() => {
+  statusText.innerText = "Models loaded. Tap Start Camera.";
+});
 
 // 🔹 Load known faces
 async function loadKnownFaces() {
@@ -51,8 +43,31 @@ async function loadKnownFaces() {
   );
 }
 
+// 🔹 Start camera ONLY on button click (iPhone rule)
+startCamBtn.onclick = async () => {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "user" },
+      audio: false
+    });
+
+    video.srcObject = stream;
+    await video.play();
+
+    startCamBtn.disabled = true;
+    startCamBtn.innerText = "Camera Started";
+
+    statusText.innerText = "Scanning face...";
+    startRecognition();
+
+  } catch (err) {
+    alert("Camera permission denied");
+    console.error(err);
+  }
+};
+
 // 🔹 Face recognition loop
-async function recognizeLoop() {
+async function startRecognition() {
   const labeledFaces = await loadKnownFaces();
   const matcher = new faceapi.FaceMatcher(labeledFaces, 0.5);
 
