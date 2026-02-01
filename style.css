@@ -1,85 +1,58 @@
-* { box-sizing: border-box; }
-
-body {
-  background: #f2f2f2;
-  font-family: Arial, sans-serif;
-}
-
-.box {
-  width: 90%;
-  max-width: 380px;
-  background: white;
-  padding: 20px;
-  margin: 25px auto;
-  text-align: center;
-  border-radius: 8px;
-  box-shadow: 0 0 10px rgba(0,0,0,0.1);
+/* style.css */
+body { 
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    background-color: #f4f4f9;
+    margin: 0;
+    padding: 20px;
 }
 
 video {
-  width: 100%;
-  background: black;
-  border-radius: 6px;
-  margin-top: 10px;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    background-color: #000;
 }
+
+canvas { 
+    position: absolute; 
+    top: 0;
+    left: 0;
+} 
+
+table { 
+    width: 90%; 
+    max-width: 800px;
+    border-collapse: collapse; 
+    margin-top: 30px; 
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+th, td { 
+    border: 1px solid #ddd; 
+    padding: 12px; 
+    text-align: left; 
+}
+
+th { 
+    background-color: #2e7d32; 
+    color: white; 
+    text-transform: uppercase;
+    font-size: 14px;
+}
+
+tr:nth-child(even) { background-color: #f9f9f9; }
 
 button {
-  width: 100%;
-  padding: 10px;
-  margin-top: 10px;
-  background: #007bff;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 15px;
+    background-color: #2196F3;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: bold;
+    transition: 0.3s;
 }
 
-button:disabled {
-  background: #999;
-}
-
-#status, #blinkStatus {
-  margin-top: 10px;
-  font-weight: bold;
-}
-
-/* TABLE */
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-
-th, td {
-  border: 1px solid #ccc;
-  padding: 6px;
-  text-align: center;
-  font-size: 14px;
-}
-
-th {
-  background: #007bff;
-  color: white;
-}
-/* ===== Face Detection Overlay ===== */
-
-.box {
-  position: relative; /* REQUIRED for canvas */
-}
-
-#overlay {
-  position: absolute;
-  top: 60px;           /* aligns over video */
-  left: 50%;
-  transform: translateX(-50%);
-  width: 320px;
-  height: 240px;
-  pointer-events: none;
-}
-
-#detectIndicator {
-  margin-top: 10px;
-  font-weight: bold;
-  text-align: center;
-  color: orange;
-}
+button:hover { background-color: #1976D2; }
