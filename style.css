@@ -61,3 +61,25 @@ th {
   background: #007bff;
   color: white;
 }
+/* ===== Face Detection Overlay ===== */
+
+.box {
+  position: relative; /* REQUIRED for canvas */
+}
+
+#overlay {
+  position: absolute;
+  top: 60px;           /* aligns over video */
+  left: 50%;
+  transform: translateX(-50%);
+  width: 320px;
+  height: 240px;
+  pointer-events: none;
+}
+
+#detectIndicator {
+  margin-top: 10px;
+  font-weight: bold;
+  text-align: center;
+  color: orange;
+}
