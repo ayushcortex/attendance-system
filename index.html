@@ -1,34 +1,51 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>AI Attendance System</title>
-    <style>
-        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; }
-        canvas { position: absolute; } /* Overlays detection boxes on video */
-        table { width: 80%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        th { background-color: #4CAF50; color: white; }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Face Attendance | Ayush System</title>
+    <link rel="stylesheet" href="style.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+    <script defer src="script.js"></script>
 </head>
 <body>
-    <h2>Face Recognition Attendance</h2>
-    <div style="position: relative;">
-        <video id="video" width="600" height="450" autoplay muted></video>
+
+    <div class="header">
+        <h1>Smart Attendance System</h1>
+        <div id="status-chip" class="status-idle">System Initializing...</div>
     </div>
 
-    <table id="attendance-table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Roll Number</th>
-                <th>Date</th>
-                <th>Time</th>
-            </tr>
-        </thead>
-        <tbody id="table-body"></tbody>
-    </table>
+    <div class="container">
+        <div class="video-section">
+            <video id="video" width="640" height="480" autoplay muted></video>
+            <canvas id="overlay"></canvas>
+        </div>
 
-    <script defer src="face-api.min.js"></script>
-    <script defer src="script.js"></script>
+        <div class="controls">
+            <button onclick="downloadCSV()" id="download-btn">
+                📥 Export Attendance (CSV)
+            </button>
+        </div>
+
+        <div class="table-section">
+            <table id="attendance-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Roll Number</th>
+                        <th>Date</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Scanning for: <strong>Ayush (72)</strong></p>
+    </div>
+
 </body>
 </html>
