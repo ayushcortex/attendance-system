@@ -1,112 +1,45 @@
-// ===== ELEMENTS =====
-const video = document.getElementById("video");
-const startBtn = document.getElementById("startCamBtn");
-const confirmBtn = document.getElementById("confirmBtn");
-const statusText = document.getElementById("status");
-const nameText = document.getElementById("name");
-const rollText = document.getElementById("roll");
-const tableBody = document.querySelector("#attendanceTable tbody");
+// --- Updated script.js snippet ---
 
-const canvas = document.getElementById("overlay");
-const indicator = document.getElementById("detectIndicator");
-
-// ===== PATH =====
-const MODEL_URL = "./models";
-
-// ===== STATE =====
-let faceDetected = false;
-
-// ===== LOAD MODELS =====
-async function loadModels() {
-  try {
-    statusText.innerText = "Loading models...";
-    await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-    statusText.innerText = "Models loaded ✅";
-  } catch (err) {
-    console.error(err);
-    statusText.innerText = "❌ Model loading error";
-  }
+async function loadLabeledImages() {
+  // Add 'Ayush_72' to this list. 
+  // The system will look for /labels/Ayush_72.jpg
+  const labels = ['Ayush_72', 'Alice_101', 'Bob_102']; 
+  
+  return Promise.all(
+    labels.map(async label => {
+      try {
+        const img = await faceapi.fetchImage(`/labels/${label}.jpg`);
+        const detections = await faceapi.detectSingleFace(img)
+          .withFaceLandmarks()
+          .withFaceDescriptor();
+        
+        if (!detections) {
+          throw new Error(`No face detected for ${label}`);
+        }
+        
+        return new faceapi.LabeledFaceDescriptors(label, [detections.descriptor]);
+      } catch (e) {
+        console.error(e);
+      }
+    })
+  );
 }
 
-loadModels();
-
-// ===== START CAMERA =====
-startBtn.addEventListener("click", async () => {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    video.srcObject = stream;
-    await video.play();
-
-    canvas.width = 320;
-    canvas.height = 240;
-
-    statusText.innerText = "Camera started";
-    detectFace();
-  } catch (err) {
-    alert("Camera permission denied");
+// BONUS: Function to export the table to Excel/CSV
+function downloadCSV() {
+  let csv = 'Name,Roll Number,Date,Time\n';
+  const rows = document.querySelectorAll("table tr");
+  
+  for (let i = 1; i < rows.length; i++) {
+    const cols = rows[i].querySelectorAll("td");
+    const rowData = Array.from(cols).map(col => col.innerText).join(",");
+    csv += rowData + '\n';
   }
-});
 
-// ===== FACE DETECTION =====
-function detectFace() {
-  const displaySize = { width: 320, height: 240 };
-  faceapi.matchDimensions(canvas, displaySize);
-
-  setInterval(async () => {
-    if (video.paused || video.ended) return;
-
-    const detection = await faceapi.detectSingleFace(
-      video,
-      new faceapi.TinyFaceDetectorOptions()
-    );
-
-    const ctx = canvas.getContext("2d");
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    if (detection) {
-      const resized = faceapi.resizeResults(detection, displaySize);
-      faceapi.draw.drawDetections(canvas, resized);
-
-      faceDetected = true;
-      indicator.innerText = "✅ Face detected";
-      indicator.style.color = "green";
-
-      statusText.innerText = "Authorized";
-      confirmBtn.disabled = false;
-
-      // demo values (safe for submission)
-      nameText.innerText = "Ayush";
-      rollText.innerText = "72";
-    } else {
-      faceDetected = false;
-      indicator.innerText = "❌ No face detected";
-      indicator.style.color = "red";
-
-      statusText.innerText = "Not authorized";
-      confirmBtn.disabled = true;
-
-      nameText.innerText = "---";
-      rollText.innerText = "---";
-    }
-  }, 700);
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = window.URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.setAttribute('href', url);
+  a.setAttribute('download', 'attendance.csv');
+  a.click();
 }
-
-// ===== SAVE ATTENDANCE =====
-confirmBtn.addEventListener("click", () => {
-  if (!faceDetected) return;
-
-  const now = new Date();
-
-  const row = document.createElement("tr");
-  row.innerHTML = `
-    <td>${nameText.innerText}</td>
-    <td>${rollText.innerText}</td>
-    <td>${now.toLocaleDateString()}</td>
-    <td>${now.toLocaleTimeString()}</td>
-  `;
-
-  tableBody.appendChild(row);
-
-  statusText.innerText = "Attendance saved ✅";
-  confirmBtn.disabled = true;
-});
