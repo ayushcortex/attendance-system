@@ -2,72 +2,67 @@ const video = document.getElementById("video");
 const startBtn = document.getElementById("startCamBtn");
 const confirmBtn = document.getElementById("confirmBtn");
 const statusText = document.getElementById("status");
-const nameText = document.getElementById("name");
-const rollText = document.getElementById("roll");
+const nameSpan = document.getElementById("name");
+const rollSpan = document.getElementById("roll");
 const tableBody = document.querySelector("#attendanceTable tbody");
 
+// 🔴 CORRECT MODEL PATH FOR GITHUB PAGES
 const MODEL_URL = "/attendance-system/models";
-const KNOWN_FACES = "./known_faces";
+const KNOWN_FACES_URL = "/attendance-system/known_faces";
 
+let labeledDescriptors = [];
 let faceMatcher;
-let currentMatch = null;
+let detectedPerson = null;
 
-// ---------------- LOAD MODELS ----------------
+// Load models
 async function loadModels() {
   try {
     await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
     await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
     await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-    statusText.innerText = "Models loaded";
-  } catch (e) {
+    statusText.innerText = "Loading known faces...";
+    await loadKnownFaces();
+    statusText.innerText = "✅ Ready";
+  } catch (err) {
+    console.error(err);
     statusText.innerText = "❌ Model loading error";
-    console.error(e);
   }
 }
 
-// ---------------- LOAD KNOWN FACES ----------------
+// Load known face images
 async function loadKnownFaces() {
-  const labels = [
+  const people = [
     "Ayush_72",
-    "Riya_102",
-    "Aman_103",
-    "Neha_104",
-    "Riya_105"
+    "Rahul_102",
+    "Neha_103"
   ];
 
-  const labeledDescriptors = [];
-
-  for (const label of labels) {
-    const img = await faceapi.fetchImage(`${KNOWN_FACES}/${label}.jpg`);
+  for (let person of people) {
+    const img = await faceapi.fetchImage(`${KNOWN_FACES_URL}/${person}.jpg`);
     const detection = await faceapi
       .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
       .withFaceLandmarks()
       .withFaceDescriptor();
 
-    if (detection) {
-      labeledDescriptors.push(
-        new faceapi.LabeledFaceDescriptors(label, [detection.descriptor])
-      );
-    }
+    if (!detection) continue;
+
+    labeledDescriptors.push(
+      new faceapi.LabeledFaceDescriptors(person, [detection.descriptor])
+    );
   }
 
-  faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.6);
+  faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.5);
 }
 
-// ---------------- CAMERA ----------------
+// Start camera
 startBtn.addEventListener("click", async () => {
   const stream = await navigator.mediaDevices.getUserMedia({ video: true });
   video.srcObject = stream;
-  await video.play();
-  statusText.innerText = "Camera started";
-  recognizeFace();
 });
 
-// ---------------- FACE RECOGNITION ----------------
-async function recognizeFace() {
+// Face detection loop
+video.addEventListener("play", () => {
   setInterval(async () => {
-    if (!faceMatcher) return;
-
     const detection = await faceapi
       .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
       .withFaceLandmarks()
@@ -88,35 +83,31 @@ async function recognizeFace() {
     }
 
     const [name, roll] = result.label.split("_");
-    currentMatch = { name, roll };
+    nameSpan.innerText = name;
+    rollSpan.innerText = roll;
+    detectedPerson = { name, roll };
 
-    nameText.innerText = name;
-    rollText.innerText = roll;
     statusText.innerText = `✅ Authorized (${Math.round((1 - result.distance) * 100)}%)`;
     confirmBtn.disabled = false;
-  }, 1000);
-}
+  }, 1500);
+});
 
-// ---------------- SAVE ATTENDANCE ----------------
+// Save attendance
 confirmBtn.addEventListener("click", () => {
-  if (!currentMatch) return;
+  if (!detectedPerson) return;
 
   const now = new Date();
   const row = document.createElement("tr");
 
   row.innerHTML = `
-    <td>${currentMatch.name}</td>
-    <td>${currentMatch.roll}</td>
+    <td>${detectedPerson.name}</td>
+    <td>${detectedPerson.roll}</td>
     <td>${now.toLocaleDateString()}</td>
     <td>${now.toLocaleTimeString()}</td>
   `;
 
   tableBody.appendChild(row);
-  statusText.innerText = "✅ Attendance saved";
   confirmBtn.disabled = true;
 });
 
-(async () => {
-  await loadModels();
-  await loadKnownFaces();
-})();
+loadModels();
