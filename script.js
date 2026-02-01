@@ -6,19 +6,15 @@ const MODEL_URL = "/attendance-system/models";
 
 async function loadModels() {
   try {
-    statusText.innerText = "⏳ Loading tiny face detector...";
+    statusText.innerText = "⏳ Loading face detector...";
     await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
 
-    statusText.innerText = "⏳ Loading face landmarks...";
+    statusText.innerText = "⏳ Loading landmarks...";
     await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
 
-    statusText.innerText = "⏳ Loading face recognition...";
-    await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-
-    statusText.innerText = "✅ Models loaded successfully";
-    console.log("All models loaded");
-  } catch (err) {
-    console.error("MODEL LOAD FAILED:", err);
+    statusText.innerText = "✅ Face detection ready";
+  } catch (e) {
+    console.error(e);
     statusText.innerText = "❌ Model loading error";
   }
 }
@@ -28,9 +24,24 @@ startBtn.addEventListener("click", async () => {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
     video.srcObject = stream;
     await video.play();
-  } catch (err) {
+    detectFace();
+  } catch {
     alert("Camera permission denied");
   }
 });
+
+async function detectFace() {
+  setInterval(async () => {
+    const detection = await faceapi
+      .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+      .withFaceLandmarks();
+
+    if (detection) {
+      statusText.innerText = "✅ Face detected (Authorized)";
+    } else {
+      statusText.innerText = "❌ No face detected";
+    }
+  }, 500);
+}
 
 loadModels();
