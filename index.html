@@ -1,51 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Face Attendance | Ayush System</title>
-    <link rel="stylesheet" href="style.css">
-    <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
-    <script defer src="script.js"></script>
+  <meta charset="UTF-8">
+  <title>Smart Face Attendance</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Face API -->
+  <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2"></script>
+  <script defer src="script.js"></script>
+
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-    <div class="header">
-        <h1>Smart Attendance System</h1>
-        <div id="status-chip" class="status-idle">System Initializing...</div>
+  <h1>Smart Face Attendance System</h1>
+
+  <div class="container">
+
+    <!-- FACE BOX -->
+    <div class="card">
+      <h2>Face Verification</h2>
+
+      <div class="video-box">
+        <video id="video" autoplay muted playsinline></video>
+        <canvas id="overlay"></canvas>
+      </div>
+
+      <div id="detectIndicator">🔍 Waiting for face...</div>
+
+      <button id="startCamBtn">Start Camera</button>
+
+      <div class="info">
+        <p><b>Name:</b> <span id="name">Ayush</span></p>
+        <p><b>Roll:</b> <span id="roll">101</span></p>
+      </div>
+
+      <p id="status">Waiting...</p>
+
+      <button id="confirmBtn" disabled>Confirm Attendance</button>
     </div>
 
-    <div class="container">
-        <div class="video-section">
-            <video id="video" width="640" height="480" autoplay muted></video>
-            <canvas id="overlay"></canvas>
-        </div>
+    <!-- TABLE BOX -->
+    <div class="card">
+      <h2>Attendance Records</h2>
 
-        <div class="controls">
-            <button onclick="downloadCSV()" id="download-btn">
-                📥 Export Attendance (CSV)
-            </button>
-        </div>
-
-        <div class="table-section">
-            <table id="attendance-table">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Roll Number</th>
-                        <th>Date</th>
-                        <th>Time</th>
-                    </tr>
-                </thead>
-                <tbody id="table-body">
-                    </tbody>
-            </table>
-        </div>
+      <table id="attendanceTable">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Roll</th>
+            <th>Date</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
     </div>
 
-    <div class="footer">
-        <p>Scanning for: <strong>Ayush (72)</strong></p>
-    </div>
+  </div>
 
 </body>
 </html>
