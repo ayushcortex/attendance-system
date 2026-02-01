@@ -6,7 +6,7 @@ const nameText = document.getElementById("name");
 const rollText = document.getElementById("roll");
 const tableBody = document.querySelector("#attendanceTable tbody");
 
-const MODEL_URL = "./models";
+const MODEL_URL = "/attendance-system/models";
 const KNOWN_FACES = "./known_faces";
 
 let faceMatcher;
