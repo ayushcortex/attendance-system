@@ -21,7 +21,7 @@ async function loadModels() {
 }
 
 async function loadKnownFaces() {
-  const users = ["ayush_101"]; // add more if needed
+  const users = ["Ayush_101"]; // add more if needed
   const descriptors = [];
 
   for (let user of users) {
