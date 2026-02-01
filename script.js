@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const startBtn = document.getElementById("startBtn");
+  const startBtn = document.getElementById("startCamBtn");
   const video = document.getElementById("video");
   const status = document.getElementById("status");
 
