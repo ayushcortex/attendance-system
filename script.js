@@ -2,7 +2,7 @@ const video = document.getElementById("video");
 const startBtn = document.getElementById("startCamBtn");
 const statusText = document.getElementById("status");
 
-const MODEL_URL = "./models";
+const MODEL_URL = "/attendance-system/models";
 
 async function loadModels() {
   try {
@@ -15,7 +15,7 @@ async function loadModels() {
     statusText.innerText = "✅ Models loaded successfully";
     console.log("Models loaded successfully");
   } catch (err) {
-    console.error("Model loading error:", err);
+    console.error("MODEL LOAD ERROR:", err);
     statusText.innerText = "❌ Model loading error";
   }
 }
