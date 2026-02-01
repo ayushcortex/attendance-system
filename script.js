@@ -6,14 +6,12 @@ const nameSpan = document.getElementById("name");
 const rollSpan = document.getElementById("roll");
 const tableBody = document.querySelector("#attendanceTable tbody");
 
-const MODEL_URL = "/attendance-system/models";
-const KNOWN_FACES_URL = "/attendance-system/known_faces";
+const MODEL_URL = "./models";
+const KNOWN_FACES_URL = "./known_faces";
 
-let labeledDescriptors = [];
 let faceMatcher;
-let currentMatch = null;
+let currentUser = null;
 
-// Load models
 async function loadModels() {
   statusText.innerText = "Loading models...";
   await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
@@ -22,40 +20,31 @@ async function loadModels() {
   statusText.innerText = "Models loaded";
 }
 
-// Load known faces
 async function loadKnownFaces() {
-  const people = [
-    "Ayush_72",
-    "rahul_102",
-    "amit_103"
-  ];
+  const users = ["ayush_101"]; // add more if needed
+  const descriptors = [];
 
-  for (let person of people) {
-    const img = await faceapi.fetchImage(`${KNOWN_FACES_URL}/${person}.jpg`);
+  for (let user of users) {
+    const img = await faceapi.fetchImage(`${KNOWN_FACES_URL}/${user}.jpg`);
     const detection = await faceapi
       .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
       .withFaceLandmarks()
       .withFaceDescriptor();
 
-    if (!detection) continue;
-
-    labeledDescriptors.push(
-      new faceapi.LabeledFaceDescriptors(person, [detection.descriptor])
-    );
+    if (detection) {
+      descriptors.push(
+        new faceapi.LabeledFaceDescriptors(user, [detection.descriptor])
+      );
+    }
   }
 
-  faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.5);
+  faceMatcher = new faceapi.FaceMatcher(descriptors, 0.5);
 }
 
-// Start camera
 startBtn.addEventListener("click", async () => {
   const stream = await navigator.mediaDevices.getUserMedia({ video: true });
   video.srcObject = stream;
-  detectFace();
-});
 
-// Face recognition loop
-async function detectFace() {
   setInterval(async () => {
     const detection = await faceapi
       .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
@@ -68,43 +57,38 @@ async function detectFace() {
       return;
     }
 
-    const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
+    const result = faceMatcher.findBestMatch(detection.descriptor);
 
-    if (bestMatch.label === "unknown") {
+    if (result.label === "unknown") {
       statusText.innerText = "❌ Face not recognized";
       confirmBtn.disabled = true;
       return;
     }
 
-    const [name, roll] = bestMatch.label.split("_");
+    const [name, roll] = result.label.split("_");
     nameSpan.innerText = name;
     rollSpan.innerText = roll;
-
     statusText.innerText = "✅ Face recognized";
+    currentUser = { name, roll };
     confirmBtn.disabled = false;
-    currentMatch = { name, roll };
   }, 1500);
-}
+});
 
-// Save attendance
 confirmBtn.addEventListener("click", () => {
-  if (!currentMatch) return;
+  if (!currentUser) return;
 
   const now = new Date();
   const row = document.createElement("tr");
-
   row.innerHTML = `
-    <td>${currentMatch.name}</td>
-    <td>${currentMatch.roll}</td>
+    <td>${currentUser.name}</td>
+    <td>${currentUser.roll}</td>
     <td>${now.toLocaleDateString()}</td>
     <td>${now.toLocaleTimeString()}</td>
   `;
-
   tableBody.appendChild(row);
   confirmBtn.disabled = true;
 });
 
-// Init
 (async () => {
   await loadModels();
   await loadKnownFaces();
