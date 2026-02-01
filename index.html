@@ -2,47 +2,136 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Face Attendance</title>
+  <title>Face Attendance System</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="stylesheet" href="style.css">
-
+  <!-- Face API -->
   <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2"></script>
   <script defer src="script.js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .box {
+      background: #fff;
+      padding: 20px;
+      margin: 15px;
+      border-radius: 10px;
+      width: 360px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      position: relative;
+    }
+
+    video {
+      width: 320px;
+      height: 240px;
+      border-radius: 6px;
+      background: #000;
+    }
+
+    canvas {
+      position: absolute;
+      top: 78px;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 6px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+      width: 100%;
+      font-size: 15px;
+    }
+
+    button:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+
+    #detectIndicator {
+      margin-top: 8px;
+      font-weight: bold;
+      text-align: center;
+      color: orange;
+    }
+
+    #status {
+      margin-top: 8px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 6px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    th {
+      background: #f0f0f0;
+    }
+  </style>
 </head>
+
 <body>
 
-<div class="box">
-  <h2>Face Verification</h2>
+  <!-- FACE VERIFICATION -->
+  <div class="box">
+    <h3>Face Verification</h3>
 
-  <video id="video" autoplay muted playsinline></video>
-  <canvas id="overlay"></canvas>
-<div id="detectIndicator">🔍 Detecting face...</div>
+    <video id="video" autoplay muted playsinline></video>
+    <canvas id="overlay"></canvas>
 
-  <button id="startCamBtn">Start Camera</button>
+    <div id="detectIndicator">🔍 Detecting face...</div>
 
-  <p><b>Name:</b> <span id="name">---</span></p>
-  <p><b>Roll:</b> <span id="roll">---</span></p>
+    <button id="startCamBtn">Start Camera</button>
 
-  <p id="status">Waiting...</p>
+    <p><b>Name:</b> <span id="name">---</span></p>
+    <p><b>Roll:</b> <span id="roll">---</span></p>
 
-  <button id="confirmBtn" disabled>Confirm</button>
-</div>
+    <p id="status">Waiting...</p>
 
-<div class="box">
-  <h2>Attendance Records</h2>
-  <table id="attendanceTable">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Roll</th>
-        <th>Date</th>
-        <th>Time</th>
-      </tr>
-    </thead>
-    <tbody></tbody>
-  </table>
-</div>
+    <button id="confirmBtn" disabled>Confirm Attendance</button>
+  </div>
+
+  <!-- ATTENDANCE TABLE -->
+  <div class="box">
+    <h3>Attendance Records</h3>
+
+    <table id="attendanceTable">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Roll</th>
+          <th>Date</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Rows added by JS -->
+      </tbody>
+    </table>
+  </div>
 
 </body>
 </html>
