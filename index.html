@@ -1,37 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Face Attendance</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 
   <!-- Face API -->
   <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
-<script defer src="script.js"></script>
+  <script defer src="script.js"></script>
 </head>
-
 <body>
 
-  <div class="box">
-    <h2>Face Verification</h2>
+<div class="box">
+  <h2>Face Verification</h2>
 
-    <video id="video" width="320" height="240" autoplay muted playsinline></video>
+  <video id="video" width="320" height="240" autoplay muted playsinline></video>
 
-    <button id="startCamBtn">Start Camera</button>
+  <button id="startCamBtn">Start Camera</button>
 
-    <p><strong>Name:</strong> <span id="name">---</span></p>
-    <p><strong>Roll:</strong> <span id="roll">---</span></p>
+  <p><strong>Name:</strong> <span id="name">---</span></p>
+  <p><strong>Roll:</strong> <span id="roll">---</span></p>
 
-    <p id="status">Waiting...</p>
+  <p id="status">Loading models...</p>
 
-    <button id="confirmBtn" disabled>Confirm</button>
-  </div>
-  <div class="box">
+  <button id="confirmBtn" disabled>Confirm</button>
+</div>
+
+<div class="box">
   <h2>Attendance Records</h2>
-
-  <table id="attendanceTable" border="1" width="100%">
+  <table id="attendanceTable">
     <thead>
       <tr>
         <th>Name</th>
@@ -40,9 +39,7 @@
         <th>Time</th>
       </tr>
     </thead>
-    <tbody>
-      <!-- Rows will be added by JS -->
-    </tbody>
+    <tbody></tbody>
   </table>
 </div>
 
