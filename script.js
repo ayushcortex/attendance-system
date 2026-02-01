@@ -6,35 +6,28 @@ const nameSpan = document.getElementById("name");
 const rollSpan = document.getElementById("roll");
 const tableBody = document.querySelector("#attendanceTable tbody");
 
-// 🔴 CORRECT MODEL PATH FOR GITHUB PAGES
 const MODEL_URL = "/attendance-system/models";
 const KNOWN_FACES_URL = "/attendance-system/known_faces";
 
 let labeledDescriptors = [];
 let faceMatcher;
-let detectedPerson = null;
+let currentMatch = null;
 
 // Load models
 async function loadModels() {
-  try {
-    await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-    await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-    await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-    statusText.innerText = "Loading known faces...";
-    await loadKnownFaces();
-    statusText.innerText = "✅ Ready";
-  } catch (err) {
-    console.error(err);
-    statusText.innerText = "❌ Model loading error";
-  }
+  statusText.innerText = "Loading models...";
+  await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+  await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
+  await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
+  statusText.innerText = "Models loaded";
 }
 
-// Load known face images
+// Load known faces
 async function loadKnownFaces() {
   const people = [
     "Ayush_72",
-    "Rahul_102",
-    "Neha_103"
+    "rahul_102",
+    "amit_103"
   ];
 
   for (let person of people) {
@@ -58,10 +51,11 @@ async function loadKnownFaces() {
 startBtn.addEventListener("click", async () => {
   const stream = await navigator.mediaDevices.getUserMedia({ video: true });
   video.srcObject = stream;
+  detectFace();
 });
 
-// Face detection loop
-video.addEventListener("play", () => {
+// Face recognition loop
+async function detectFace() {
   setInterval(async () => {
     const detection = await faceapi
       .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
@@ -74,34 +68,34 @@ video.addEventListener("play", () => {
       return;
     }
 
-    const result = faceMatcher.findBestMatch(detection.descriptor);
+    const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
 
-    if (result.label === "unknown") {
-      statusText.innerText = "❌ Unauthorized face";
+    if (bestMatch.label === "unknown") {
+      statusText.innerText = "❌ Face not recognized";
       confirmBtn.disabled = true;
       return;
     }
 
-    const [name, roll] = result.label.split("_");
+    const [name, roll] = bestMatch.label.split("_");
     nameSpan.innerText = name;
     rollSpan.innerText = roll;
-    detectedPerson = { name, roll };
 
-    statusText.innerText = `✅ Authorized (${Math.round((1 - result.distance) * 100)}%)`;
+    statusText.innerText = "✅ Face recognized";
     confirmBtn.disabled = false;
+    currentMatch = { name, roll };
   }, 1500);
-});
+}
 
 // Save attendance
 confirmBtn.addEventListener("click", () => {
-  if (!detectedPerson) return;
+  if (!currentMatch) return;
 
   const now = new Date();
   const row = document.createElement("tr");
 
   row.innerHTML = `
-    <td>${detectedPerson.name}</td>
-    <td>${detectedPerson.roll}</td>
+    <td>${currentMatch.name}</td>
+    <td>${currentMatch.roll}</td>
     <td>${now.toLocaleDateString()}</td>
     <td>${now.toLocaleTimeString()}</td>
   `;
@@ -110,4 +104,8 @@ confirmBtn.addEventListener("click", () => {
   confirmBtn.disabled = true;
 });
 
-loadModels();
+// Init
+(async () => {
+  await loadModels();
+  await loadKnownFaces();
+})();
