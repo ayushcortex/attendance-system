@@ -4,7 +4,6 @@ const statusText = document.getElementById("status");
 
 const MODEL_URL = "./models";
 
-// Load face-api models
 async function loadModels() {
   try {
     statusText.innerText = "⏳ Loading models...";
@@ -14,25 +13,21 @@ async function loadModels() {
     await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
 
     statusText.innerText = "✅ Models loaded successfully";
-    console.log("Models loaded");
-  } catch (error) {
-    console.error("Model loading error:", error);
+    console.log("Models loaded successfully");
+  } catch (err) {
+    console.error("Model loading error:", err);
     statusText.innerText = "❌ Model loading error";
   }
 }
 
-// Start camera
 startBtn.addEventListener("click", async () => {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({ video: true });
     video.srcObject = stream;
     await video.play();
-    console.log("Camera started");
   } catch (err) {
-    alert("Camera permission denied or not available");
-    console.error(err);
+    alert("Camera permission denied");
   }
 });
 
-// Run on page load
 loadModels();
