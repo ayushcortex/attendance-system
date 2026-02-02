@@ -3,46 +3,49 @@
 <head>
   <meta charset="UTF-8" />
   <title>Smart Attendance System</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 
-  <!-- Face API -->
-  <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/face-api.js"></script>
   <script defer src="script.js"></script>
 </head>
-
 <body>
-  <h1>Smart Attendance System</h1>
 
-  <div class="card">
-    <h2>Face Verification</h2>
+<h1>Smart Attendance System</h1>
 
+<div class="card">
+  <h2>Face Verification</h2>
+
+  <div class="video-wrapper">
     <video id="video" autoplay muted playsinline></video>
-
-    <button id="startBtn">Start Camera</button>
-
-    <p>Status: <span id="status">Waiting</span></p>
-    <p>Scanner Time: <span id="scanTimer">0</span> sec</p>
-    <p>Name: <span id="name">---</span></p>
-    <p>Roll: <span id="roll">---</span></p>
-
-    <button id="confirmBtn" disabled>Confirm Attendance</button>
+    <canvas id="overlay"></canvas>
   </div>
 
-  <div class="card">
-    <h2>Attendance Records</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Roll</th>
-          <th>Date</th>
-          <th>Time</th>
-        </tr>
-      </thead>
-      <tbody id="attendanceBody"></tbody>
-    </table>
-  </div>
+  <button id="startBtn">Start Camera</button>
+
+  <p>Status: <span id="status">Waiting...</span></p>
+  <p>Scanner Time: <span id="timer">0</span> sec</p>
+  <p>Name: <span id="name">---</span></p>
+  <p>Roll: <span id="roll">---</span></p>
+
+  <button id="confirmBtn" disabled>Confirm Attendance</button>
+</div>
+
+<div class="card">
+  <h2>Attendance Records</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Roll</th>
+        <th>Date</th>
+        <th>Time</th>
+      </tr>
+    </thead>
+    <tbody id="attendanceBody"></tbody>
+  </table>
+</div>
+
 </body>
 </html>
