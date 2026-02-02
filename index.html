@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Smart Attendance System</title>
+  <title>Face Attendance System</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link rel="stylesheet" href="style.css">
@@ -12,19 +12,17 @@
 </head>
 <body>
 
-<h1>Smart Attendance System</h1>
+<h1>Face Attendance System</h1>
 
 <div class="card">
-  <h2>Face Verification</h2>
-
   <div class="video-box">
-    <video id="video" playsinline muted></video>
+    <video id="video" muted playsinline></video>
     <canvas id="overlay"></canvas>
   </div>
 
   <button id="startBtn">Start Camera</button>
 
-  <p>Status: <span id="status">Waiting…</span></p>
+  <p>Status: <span id="status">Waiting</span></p>
   <p>Scanner Time: <span id="timer">0</span> sec</p>
   <p>Name: <b><span id="name">---</span></b></p>
   <p>Roll: <b><span id="roll">---</span></b></p>
@@ -47,7 +45,7 @@
   </table>
 </div>
 
-<!-- ✅ SCRIPT AT BOTTOM -->
+<!-- SCRIPT AT BOTTOM (VERY IMPORTANT) -->
 <script src="script.js"></script>
 </body>
 </html>
