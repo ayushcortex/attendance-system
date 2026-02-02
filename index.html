@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Smart Attendance System</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 
-  <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
-  <script defer src="script.js"></script>
+  <!-- Face API -->
+  <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 </head>
 <body>
 
@@ -18,7 +18,7 @@
   <h2>Face Verification</h2>
 
   <div class="video-box">
-    <video id="video" autoplay muted playsinline></video>
+    <video id="video" playsinline muted></video>
     <canvas id="overlay"></canvas>
   </div>
 
@@ -47,5 +47,7 @@
   </table>
 </div>
 
+<!-- ✅ SCRIPT AT BOTTOM -->
+<script src="script.js"></script>
 </body>
 </html>
