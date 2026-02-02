@@ -5,10 +5,6 @@ body {
   padding: 20px;
 }
 
-h1 {
-  margin-bottom: 20px;
-}
-
 .card {
   background: white;
   padding: 20px;
@@ -29,7 +25,7 @@ video {
 button {
   margin-top: 12px;
   padding: 10px 16px;
-  font-size: 15px;
+  font-size: 16px;
   border: none;
   border-radius: 8px;
   background: #007bff;
@@ -39,7 +35,6 @@ button {
 
 button:disabled {
   background: gray;
-  cursor: not-allowed;
 }
 
 table {
