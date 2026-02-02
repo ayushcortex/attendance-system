@@ -30,7 +30,7 @@ async function loadModels() {
 // 🔹 LOAD KNOWN FACES
 async function loadKnownFaces() {
   const students = [
-    "Ayush_72",
+    "ayush_72",
     "Rahul_15",
     "Neha_21"
   ];
