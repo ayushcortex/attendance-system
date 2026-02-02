@@ -5,61 +5,70 @@ const confirmBtn = document.getElementById("confirmBtn");
 const statusText = document.getElementById("status");
 const nameText = document.getElementById("name");
 const rollText = document.getElementById("roll");
+const timerText = document.getElementById("scanTimer");
 const attendanceBody = document.getElementById("attendanceBody");
 
-let labeledDescriptors;
+let labeledDescriptors = [];
 let currentMatch = null;
+let seconds = 0;
 
-// 1️⃣ LOAD MODELS
+// ⏱ TIMER
+setInterval(() => {
+  seconds++;
+  timerText.innerText = seconds;
+}, 1000);
+
+// 🔹 LOAD MODELS
 async function loadModels() {
   statusText.innerText = "Loading models...";
-  await faceapi.nets.tinyFaceDetector.loadFromUri("./models");
-  await faceapi.nets.faceLandmark68Net.loadFromUri("./models");
-  await faceapi.nets.faceRecognitionNet.loadFromUri("./models");
-  statusText.innerText = "Models loaded ✅";
+  await faceapi.nets.tinyFaceDetector.loadFromUri("models");
+  await faceapi.nets.faceLandmark68Net.loadFromUri("models");
+  await faceapi.nets.faceRecognitionNet.loadFromUri("models");
+  statusText.innerText = "Models loaded";
 }
 
-// 2️⃣ LOAD KNOWN FACES
+// 🔹 LOAD KNOWN FACES
 async function loadKnownFaces() {
   const students = [
-    { name: "Ayush", roll: "72", img: "ayush_72.jpg" },
-    { name: "Rahul", roll: "15", img: "rahul_15.jpg" },
-    { name: "Aman", roll: "33", img: "aman_33.jpg" }
+    "Ayush_72",
+    "Rahul_15",
+    "Neha_21"
   ];
 
-  return Promise.all(
-    students.map(async (student) => {
-      const img = await faceapi.fetchImage(`./known_faces/${student.img}`);
-      const detection = await faceapi
-        .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions({ inputSize: 224 }))
-        .withFaceLandmarks()
-        .withFaceDescriptor();
+  for (let s of students) {
+    const img = await faceapi.fetchImage(`known_faces/${s}.jpg`);
+    const detection = await faceapi
+      .detectSingleFace(img)
+      .withFaceLandmarks()
+      .withFaceDescriptor();
 
-      return new faceapi.LabeledFaceDescriptors(
-        `${student.name}|${student.roll}`,
-        [detection.descriptor]
+    if (detection) {
+      labeledDescriptors.push(
+        new faceapi.LabeledFaceDescriptors(s, [detection.descriptor])
       );
-    })
-  );
+    }
+  }
 }
 
-// 3️⃣ START CAMERA
-startBtn.addEventListener("click", async () => {
-  const stream = await navigator.mediaDevices.getUserMedia({
-    video: { facingMode: "user", width: 640, height: 480 }
-  });
-  video.srcObject = stream;
-  statusText.innerText = "Camera started ✅";
-  setTimeout(startRecognition, 1500);
-});
+// 🎥 START CAMERA
+startBtn.onclick = async () => {
+  await loadModels();
+  await loadKnownFaces();
 
-// 4️⃣ FACE RECOGNITION LOOP
-async function startRecognition() {
-  const faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.5);
+  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+  video.srcObject = stream;
+
+  statusText.innerText = "Camera started";
+  startRecognition();
+};
+
+// 🔍 FACE RECOGNITION LOOP
+function startRecognition() {
+  const matcher = new faceapi.FaceMatcher(labeledDescriptors, 0.5);
 
   setInterval(async () => {
     const detection = await faceapi
-      .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 224 }))
+      .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
       .withFaceLandmarks()
       .withFaceDescriptor();
 
@@ -69,31 +78,31 @@ async function startRecognition() {
       return;
     }
 
-    const match = faceMatcher.findBestMatch(detection.descriptor);
+    const result = matcher.findBestMatch(detection.descriptor);
 
-    if (match.label === "unknown") {
-      statusText.innerText = "❌ Face not recognized";
+    if (result.label === "unknown") {
+      statusText.innerText = "⚠️ Face not recognized";
       confirmBtn.disabled = true;
       return;
     }
 
-    const [name, roll] = match.label.split("|");
+    const [name, roll] = result.label.split("_");
     currentMatch = { name, roll };
 
-    statusText.innerText = "✅ Face recognized";
     nameText.innerText = name;
     rollText.innerText = roll;
+    statusText.innerText = "✅ Face recognized";
     confirmBtn.disabled = false;
   }, 1200);
 }
 
-// 5️⃣ SAVE ATTENDANCE
-confirmBtn.addEventListener("click", () => {
+// ✅ SAVE ATTENDANCE
+confirmBtn.onclick = () => {
   if (!currentMatch) return;
 
   const now = new Date();
-  const row = document.createElement("tr");
 
+  const row = document.createElement("tr");
   row.innerHTML = `
     <td>${currentMatch.name}</td>
     <td>${currentMatch.roll}</td>
@@ -103,10 +112,4 @@ confirmBtn.addEventListener("click", () => {
 
   attendanceBody.appendChild(row);
   confirmBtn.disabled = true;
-});
-
-// INIT
-(async () => {
-  await loadModels();
-  labeledDescriptors = await loadKnownFaces();
-})();
+};
