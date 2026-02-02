@@ -58,21 +58,28 @@ async function loadKnownFaces() {
 
 /* ================= START CAMERA ================= */
 
+const startBtn = document.getElementById("startBtn");
+const video = document.getElementById("video");
+const statusText = document.getElementById("status");
+
 startBtn.onclick = async () => {
-  await loadKnownFaces();
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "user" }
+    });
 
-  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-  video.srcObject = stream;
+    video.srcObject = stream;
+    await video.play();
 
-  video.onloadedmetadata = () => {
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-  };
+    statusText.innerText = "Camera started ✅";
+    console.log("Camera stream started");
 
-  statusText.innerText = "Camera started ✅";
-  startTimer();
-  startRecognition();
+  } catch (err) {
+    console.error(err);
+    alert("Camera permission denied or not available");
+  }
 };
+
 
 /* ================= TIMER ================= */
 
