@@ -32,30 +32,34 @@ startBtn.addEventListener("click", async () => {
   video.addEventListener("play", startFaceDetection);
 });
 
-function startFaceDetection() {
-  console.log("Detection loop started");
+let labeledDescriptors = [];
+const students = {
+  ayush: "72",
+  rahul: "45"
+};
 
-  scanSeconds = 0;
-  timerText.innerText = "Scanner Time: 0 sec";
+async function loadKnownFaces() {
+  const labels = Object.keys(students);
 
-  scanInterval = setInterval(async () => {
-    scanSeconds++;
-    timerText.innerText = `Scanner Time: ${scanSeconds} sec`;
+  for (const label of labels) {
+    const descriptions = [];
 
-    const detection = await faceapi.detectSingleFace(
-      video,
-      new faceapi.TinyFaceDetectorOptions()
-    );
+    for (let i = 1; i <= 2; i++) {
+      const img = await faceapi.fetchImage(`./known_faces/${label}/${i}.jpg`);
+      const detection = await faceapi
+        .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks()
+        .withFaceDescriptor();
 
-    if (detection) {
-      statusText.innerText = "Face detected ✅";
-      nameText.innerText = "ayush";
-      rollText.innerText = "72";
-    } else {
-      statusText.innerText = "No face detected ❌";
-      nameText.innerText = "---";
-      rollText.innerText = "---";
+      if (detection) {
+        descriptions.push(detection.descriptor);
+      }
     }
 
-  }, 1000);
+    labeledDescriptors.push(
+      new faceapi.LabeledFaceDescriptors(label, descriptions)
+    );
+  }
+
+  console.log("Known faces loaded");
 }
