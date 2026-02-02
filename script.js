@@ -1,3 +1,4 @@
+// ===== ELEMENTS =====
 const video = document.getElementById("video");
 const canvas = document.getElementById("overlay");
 const ctx = canvas.getContext("2d");
@@ -11,80 +12,86 @@ const nameText = document.getElementById("name");
 const rollText = document.getElementById("roll");
 const attendanceBody = document.getElementById("attendanceBody");
 
-let labeledDescriptors;
 let faceMatcher;
-let scanTimer = 0;
-let interval;
-let detectedPerson = null;
+let scanSeconds = 0;
+let scanInterval;
+let currentPerson = null;
 
-/* ================= LOAD MODELS ================= */
-
+// ===== LOAD MODELS =====
 async function loadModels() {
   const MODEL_URL = "./models";
-
-  console.log("Loading models...");
+  statusText.innerText = "Loading models...";
   await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
   await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
   await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-  console.log("Models loaded");
+  statusText.innerText = "Models loaded";
 }
 
-/* ============ LOAD KNOWN FACES ================= */
-
+// ===== LOAD KNOWN FACES =====
 async function loadKnownFaces() {
   const students = [
     { name: "Ayush", roll: "72" },
-    { name: "Rahul", roll: "45" }
+    { name: "Rahul", roll: "15" }
   ];
 
-  return Promise.all(
-    students.map(async student => {
-      const descriptors = [];
+  const descriptors = [];
 
-      for (let i = 1; i <= 2; i++) {
-        const img = await faceapi.fetchImage(
-          `./known_faces/${student.name.toLowerCase()}/${i}.jpg`
-        );
+  for (const s of students) {
+    const img = await faceapi.fetchImage(
+      `./known_faces/${s.name}_${s.roll}.jpg`
+    );
 
-        const detection = await faceapi
-          .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
-          .withFaceLandmarks()
-          .withFaceDescriptor();
+    const detection = await faceapi
+      .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
+      .withFaceLandmarks()
+      .withFaceDescriptor();
 
-        if (detection) descriptors.push(detection.descriptor);
-      }
-
-      return new faceapi.LabeledFaceDescriptors(
-        student.name,
-        descriptors
+    if (detection) {
+      descriptors.push(
+        new faceapi.LabeledFaceDescriptors(
+          `${s.name}_${s.roll}`,
+          [detection.descriptor]
+        )
       );
-    })
-  );
+    }
+  }
+
+  faceMatcher = new faceapi.FaceMatcher(descriptors, 0.5);
 }
 
-/* ================= START CAMERA ================= */
-
-startBtn.onclick = async () => {
+// ===== START CAMERA =====
+startBtn.addEventListener("click", async () => {
   await loadModels();
-  labeledDescriptors = await loadKnownFaces();
-  faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.5);
+  await loadKnownFaces();
 
-  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode: "user" },
+    audio: false
+  });
+
   video.srcObject = stream;
+  await video.play();
 
-  statusText.innerText = "Camera started ✅";
-  scanTimer = 0;
-  interval = setInterval(() => timerText.innerText = ++scanTimer, 1000);
-
-  detectLoop();
-};
-
-/* ================= DETECTION LOOP ================= */
-
-async function detectLoop() {
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
 
+  statusText.innerText = "Camera started";
+  startTimer();
+  startRecognition();
+});
+
+// ===== TIMER =====
+function startTimer() {
+  scanSeconds = 0;
+  clearInterval(scanInterval);
+  scanInterval = setInterval(() => {
+    scanSeconds++;
+    timerText.innerText = scanSeconds;
+  }, 1000);
+}
+
+// ===== FACE RECOGNITION LOOP =====
+function startRecognition() {
   setInterval(async () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -94,44 +101,50 @@ async function detectLoop() {
       .withFaceDescriptor();
 
     if (!detection) {
-      statusText.innerText = "No face ❌";
+      statusText.innerText = "No face detected";
       confirmBtn.disabled = true;
       return;
     }
 
-    const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
-
+    const result = faceMatcher.findBestMatch(detection.descriptor);
     const box = detection.detection.box;
-    ctx.strokeStyle = "lime";
+
+    ctx.strokeStyle = result.label === "unknown" ? "red" : "lime";
     ctx.lineWidth = 3;
     ctx.strokeRect(box.x, box.y, box.width, box.height);
 
-    ctx.fillStyle = "lime";
-    ctx.fillText(bestMatch.label, box.x, box.y - 5);
-
-    if (bestMatch.label !== "unknown") {
-      detectedPerson = bestMatch.label;
-      nameText.innerText = bestMatch.label;
-      rollText.innerText = bestMatch.label === "Ayush" ? "72" : "45";
-      statusText.innerText = "Face recognized ✅";
-      confirmBtn.disabled = false;
+    if (result.label === "unknown") {
+      statusText.innerText = "Unknown face";
+      nameText.innerText = "---";
+      rollText.innerText = "---";
+      confirmBtn.disabled = true;
+      return;
     }
+
+    const [name, roll] = result.label.split("_");
+    currentPerson = { name, roll };
+
+    nameText.innerText = name;
+    rollText.innerText = roll;
+    statusText.innerText = "Face recognized";
+    confirmBtn.disabled = false;
   }, 800);
 }
 
-/* ================= SAVE ATTENDANCE ================= */
+// ===== SAVE ATTENDANCE =====
+confirmBtn.addEventListener("click", () => {
+  if (!currentPerson) return;
 
-confirmBtn.onclick = () => {
   const now = new Date();
-
   const row = document.createElement("tr");
+
   row.innerHTML = `
-    <td>${nameText.innerText}</td>
-    <td>${rollText.innerText}</td>
+    <td>${currentPerson.name}</td>
+    <td>${currentPerson.roll}</td>
     <td>${now.toLocaleDateString()}</td>
     <td>${now.toLocaleTimeString()}</td>
   `;
 
   attendanceBody.appendChild(row);
   confirmBtn.disabled = true;
-};
+});
