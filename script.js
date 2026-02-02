@@ -4,70 +4,108 @@ const confirmBtn = document.getElementById("confirmBtn");
 const statusText = document.getElementById("status");
 const attendanceBody = document.getElementById("attendanceBody");
 
-let faceDetected = false;
+let faceMatcher;
+let matchedName = null;
 
-// Load models
+/* ---------- LOAD MODELS ---------- */
 async function loadModels() {
-  statusText.innerText = "Loading models...";
-  await faceapi.nets.tinyFaceDetector.loadFromUri("./models");
-  statusText.innerText = "Models loaded";
+  const MODEL_URL = "./models";
+
+  await Promise.all([
+    faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+    faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
+    faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL)
+  ]);
+
+  statusText.innerText = "Models loaded ✅";
 }
 
 loadModels();
 
-// Start camera
-startBtn.addEventListener("click", async () => {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "user" }
-    });
+/* ---------- LOAD MULTIPLE STUDENTS ---------- */
+async function loadKnownFaces() {
+  const students = ["ayush", "rahul", "aman", "neha"]; // 👈 ADD NAMES HERE
 
-    video.srcObject = stream;
+  const labeledDescriptors = [];
 
-    video.onloadedmetadata = () => {
-      video.play();
-      statusText.innerText = "Camera started";
-      detectFace();
-    };
+  for (const student of students) {
+    const img = await faceapi.fetchImage(`./known_faces/${student}.jpg`);
 
-  } catch (err) {
-    alert("Camera permission denied");
-    console.error(err);
+    const detection = await faceapi
+      .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
+      .withFaceLandmarks()
+      .withFaceDescriptor();
+
+    if (!detection) {
+      console.error(`No face found in ${student}.jpg`);
+      continue;
+    }
+
+    labeledDescriptors.push(
+      new faceapi.LabeledFaceDescriptors(student, [detection.descriptor])
+    );
   }
+
+  faceMatcher = new faceapi.FaceMatcher(labeledDescriptors, 0.5);
+}
+
+/* ---------- START CAMERA ---------- */
+startBtn.addEventListener("click", async () => {
+  await loadKnownFaces();
+
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode: "user" }
+  });
+
+  video.srcObject = stream;
+
+  video.onloadedmetadata = () => {
+    video.play();
+    statusText.innerText = "Camera started 📷";
+    recognizeFace();
+  };
 });
 
-// Face detection
-function detectFace() {
+/* ---------- FACE RECOGNITION ---------- */
+async function recognizeFace() {
   setInterval(async () => {
     if (video.readyState !== 4) return;
 
-    const detection = await faceapi.detectSingleFace(
-      video,
-      new faceapi.TinyFaceDetectorOptions()
-    );
+    const detection = await faceapi
+      .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+      .withFaceLandmarks()
+      .withFaceDescriptor();
 
-    if (detection) {
-      faceDetected = true;
-      statusText.innerText = "✅ Face detected";
-      confirmBtn.disabled = false;
-    } else {
-      faceDetected = false;
+    if (!detection) {
       statusText.innerText = "❌ No face detected";
       confirmBtn.disabled = true;
+      matchedName = null;
+      return;
     }
-  }, 1000);
+
+    const result = faceMatcher.findBestMatch(detection.descriptor);
+
+    if (result.label === "unknown") {
+      statusText.innerText = "❌ Unauthorized face";
+      confirmBtn.disabled = true;
+      matchedName = null;
+    } else {
+      statusText.innerText = `✅ Verified: ${result.label}`;
+      matchedName = result.label;
+      confirmBtn.disabled = false;
+    }
+  }, 1200);
 }
 
-// Save attendance
+/* ---------- SAVE ATTENDANCE ---------- */
 confirmBtn.addEventListener("click", () => {
-  if (!faceDetected) return;
+  if (!matchedName) return;
 
   const now = new Date();
 
   const row = document.createElement("tr");
   row.innerHTML = `
-    <td>Ayush</td>
-    <td>72</td>
+    <td>${matchedName}</td>
     <td>${now.toLocaleDateString()}</td>
     <td>${now.toLocaleTimeString()}</td>
   `;
