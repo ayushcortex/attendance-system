@@ -10,12 +10,12 @@ h1 {
 }
 
 .card {
-  background: #fff;
+  background: white;
   padding: 20px;
   margin: 20px auto;
   width: 360px;
   border-radius: 12px;
-  box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.15);
 }
 
 .video-box {
@@ -40,7 +40,7 @@ canvas {
 
 button {
   margin-top: 12px;
-  padding: 10px 18px;
+  padding: 10px 16px;
   font-size: 16px;
   border: none;
   border-radius: 8px;
@@ -51,16 +51,18 @@ button {
 
 button:disabled {
   background: gray;
+  cursor: not-allowed;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
+  margin-top: 10px;
 }
 
 th, td {
-  border: 1px solid #ddd;
   padding: 8px;
+  border: 1px solid #ddd;
 }
 
 th {
