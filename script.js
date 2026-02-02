@@ -45,26 +45,29 @@ async function loadKnownFaces() {
 }
 
 // Start camera
-document.getElementById("startBtn").onclick = async () => {
-  await loadModels();
-  await loadKnownFaces();
+document.getElementById("startBtn").addEventListener("click", async () => {
+  console.log("Start Camera clicked");
 
-  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-  video.srcObject = stream;
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "user" },
+      audio: false
+    });
 
-  statusText.innerText = "Camera started ✅";
-  startTimer();
-  detectLoop();
-};
+    video.srcObject = stream;
 
-// Timer
-function startTimer() {
-  scanSeconds = 0;
-  scanInterval = setInterval(() => {
-    scanSeconds++;
-    timerText.innerText = scanSeconds;
-  }, 1000);
-}
+    video.onloadedmetadata = () => {
+      video.play();
+      statusText.innerText = "Camera started ✅";
+      console.log("Camera stream running");
+    };
+
+  } catch (err) {
+    console.error(err);
+    alert("Camera permission denied or camera not available");
+  }
+});
+
 
 // Face detection loop
 async function detectLoop() {
