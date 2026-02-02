@@ -6,50 +6,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <link rel="stylesheet" href="style.css" />
-
-  <!-- Face API -->
   <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
 </head>
 
 <body>
 
-  <h1>Smart Attendance System</h1>
+<h1>Smart Attendance System</h1>
 
-  <div class="card">
-    <h2>Face Verification</h2>
+<div class="card">
+  <h2>Face Verification</h2>
 
-    <video
-      id="video"
-      width="320"
-      height="240"
-      autoplay
-      muted
-      playsinline
-    ></video>
+  <video id="video" autoplay muted playsinline></video>
 
-    <button id="startBtn">Start Camera</button>
+  <button id="startBtn">Start Camera</button>
 
-    <p>Status: <span id="status">Waiting...</span></p>
+  <p>Status: <span id="status">Loading models...</span></p>
+  <p>Name: <strong id="name">---</strong></p>
 
-    <button id="confirmBtn" disabled>Confirm Attendance</button>
-  </div>
+  <button id="confirmBtn" disabled>Confirm Attendance</button>
+</div>
 
-  <div class="card">
-    <h2>Attendance Records</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Name</th>
-          <th>Date</th>
-          <th>Time</th>
-        </tr>
-      </thead>
-      <tbody id="attendanceBody"></tbody>
-    </table>
-  </div>
+<div class="card">
+  <h2>Attendance Records</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Date</th>
+        <th>Time</th>
+      </tr>
+    </thead>
+    <tbody id="attendanceBody"></tbody>
+  </table>
+</div>
 
-  <!-- ✅ SCRIPT AT END -->
-  <script src="script.js"></script>
-
+<script src="script.js"></script>
 </body>
 </html>
