@@ -12,22 +12,26 @@ let labeledDescriptors = [];
 let currentMatch = null;
 let seconds = 0;
 
-// ⏱ TIMER
+/* ---------------- TIMER ---------------- */
 setInterval(() => {
   seconds++;
   timerText.innerText = seconds;
 }, 1000);
 
-// 🔹 LOAD MODELS
+/* ---------------- LOAD MODELS ---------------- */
 async function loadModels() {
-  statusText.innerText = "Loading models...";
-  await faceapi.nets.tinyFaceDetector.loadFromUri("models");
-  await faceapi.nets.faceLandmark68Net.loadFromUri("models");
-  await faceapi.nets.faceRecognitionNet.loadFromUri("models");
+  const base = "https://ayushcortex.github.io/attendance-system/models";
+  console.log("Loading models from:", base);
+
+  await faceapi.nets.tinyFaceDetector.loadFromUri(base);
+  await faceapi.nets.faceLandmark68Net.loadFromUri(base);
+  await faceapi.nets.faceRecognitionNet.loadFromUri(base);
+
+  console.log("Models loaded");
   statusText.innerText = "Models loaded";
 }
 
-// 🔹 LOAD KNOWN FACES
+/* ---------------- LOAD KNOWN FACES ---------------- */
 async function loadKnownFaces() {
   const students = [
     "ayush_72",
@@ -35,36 +39,58 @@ async function loadKnownFaces() {
     "Neha_21"
   ];
 
-  for (let s of students) {
-    const img = await faceapi.fetchImage(`known_faces/${s}.jpg`);
-    const detection = await faceapi
-      .detectSingleFace(img)
-      .withFaceLandmarks()
-      .withFaceDescriptor();
+  for (let student of students) {
+    try {
+      const imgUrl = `https://ayushcortex.github.io/attendance-system/known_faces/${student}.jpg`;
+      console.log("Loading:", imgUrl);
 
-    if (detection) {
+      const img = await faceapi.fetchImage(imgUrl);
+      const detection = await faceapi
+        .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+
+      if (!detection) {
+        console.warn("❌ No face found in", student);
+        continue;
+      }
+
       labeledDescriptors.push(
-        new faceapi.LabeledFaceDescriptors(s, [detection.descriptor])
+        new faceapi.LabeledFaceDescriptors(student, [detection.descriptor])
       );
+
+      console.log("✅ Loaded:", student);
+    } catch (err) {
+      console.error("Image load error:", student, err);
     }
   }
+
+  console.log("Total registered faces:", labeledDescriptors.length);
 }
 
-// 🎥 START CAMERA
+/* ---------------- START CAMERA ---------------- */
 startBtn.onclick = async () => {
   await loadModels();
   await loadKnownFaces();
 
-  const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-  video.srcObject = stream;
+  if (labeledDescriptors.length === 0) {
+    statusText.innerText = "❌ No known faces loaded";
+    return;
+  }
 
-  statusText.innerText = "Camera started";
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: { facingMode: "user" }
+  });
+
+  video.srcObject = stream;
+  statusText.innerText = "Camera started ✅";
+
   startRecognition();
 };
 
-// 🔍 FACE RECOGNITION LOOP
+/* ---------------- FACE RECOGNITION LOOP ---------------- */
 function startRecognition() {
-  const matcher = new faceapi.FaceMatcher(labeledDescriptors, 0.5);
+  const matcher = new faceapi.FaceMatcher(labeledDescriptors, 0.6);
 
   setInterval(async () => {
     const detection = await faceapi
@@ -79,6 +105,7 @@ function startRecognition() {
     }
 
     const result = matcher.findBestMatch(detection.descriptor);
+    console.log("Match:", result.toString());
 
     if (result.label === "unknown") {
       statusText.innerText = "⚠️ Face not recognized";
@@ -93,16 +120,16 @@ function startRecognition() {
     rollText.innerText = roll;
     statusText.innerText = "✅ Face recognized";
     confirmBtn.disabled = false;
-  }, 1200);
+  }, 1500);
 }
 
-// ✅ SAVE ATTENDANCE
+/* ---------------- SAVE ATTENDANCE ---------------- */
 confirmBtn.onclick = () => {
   if (!currentMatch) return;
 
   const now = new Date();
-
   const row = document.createElement("tr");
+
   row.innerHTML = `
     <td>${currentMatch.name}</td>
     <td>${currentMatch.roll}</td>
