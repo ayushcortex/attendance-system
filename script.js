@@ -1,4 +1,9 @@
-const video = document.getElementById("video");
+window.onload = () => {
+  main();
+};
+
+async function main() {
+  const video = document.getElementById("video");
 const canvas = document.getElementById("overlay");
 const ctx = canvas.getContext("2d");
 
@@ -31,7 +36,7 @@ loadModels();
 
 async function loadKnownFaces() {
   const students = [
-    "Ayush_72",
+    "ayush_72",
     "Rahul_15",
     "Aman_23"
   ];
@@ -156,3 +161,5 @@ confirmBtn.onclick = () => {
   attendanceBody.appendChild(row);
   confirmBtn.disabled = true;
 };
+
+}
