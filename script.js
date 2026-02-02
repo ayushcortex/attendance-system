@@ -1,172 +1,125 @@
 window.onload = () => {
+  console.log("✅ Page loaded");
   main();
 };
 
 async function main() {
   const video = document.getElementById("video");
-const canvas = document.getElementById("overlay");
-const ctx = canvas.getContext("2d");
+  const startBtn = document.getElementById("startBtn");
+  const statusText = document.getElementById("status");
+  const timerText = document.getElementById("timer");
+  const nameText = document.getElementById("name");
+  const rollText = document.getElementById("roll");
+  const confirmBtn = document.getElementById("confirmBtn");
+  const attendanceBody = document.getElementById("attendanceBody");
 
-const startBtn = document.getElementById("startBtn");
-const confirmBtn = document.getElementById("confirmBtn");
+  let scanTime = 0;
+  let timerInterval;
+  let faceDetected = false;
 
-const statusText = document.getElementById("status");
-const timerText = document.getElementById("timer");
-const nameText = document.getElementById("name");
-const rollText = document.getElementById("roll");
-const attendanceBody = document.getElementById("attendanceBody");
+  console.log("🔄 Loading models...");
 
-let labeledDescriptors = [];
-let currentMatch = null;
-let seconds = 0;
-
-/* ================= LOAD MODELS ================= */
-
-async function loadModels() {
-  statusText.innerText = "Loading models...";
-  await faceapi.nets.tinyFaceDetector.loadFromUri("models");
-  await faceapi.nets.faceLandmark68Net.loadFromUri("models");
-  await faceapi.nets.faceRecognitionNet.loadFromUri("models");
-  statusText.innerText = "Models loaded";
-}
-
-loadModels();
-
-/* ================= LOAD KNOWN FACES ================= */
-
-async function loadKnownFaces() {
-  const students = [
-    "ayush_72",
-    "Rahul_15",
-    "Aman_23"
-  ];
-
-  for (let student of students) {
-    const img = await faceapi.fetchImage(`known_faces/${student}.jpg`);
-    const detection = await faceapi
-      .detectSingleFace(img, new faceapi.TinyFaceDetectorOptions())
-      .withFaceLandmarks()
-      .withFaceDescriptor();
-
-    if (detection) {
-      labeledDescriptors.push(
-        new faceapi.LabeledFaceDescriptors(student, [detection.descriptor])
-      );
-    }
-  }
-}
-
-/* ================= START CAMERA ================= */
-
-const startBtn = document.getElementById("startBtn");
-const video = document.getElementById("video");
-const statusText = document.getElementById("status");
-
-startBtn.onclick = async () => {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "user" }
-    });
-
-    video.srcObject = stream;
-    await video.play();
-
-    statusText.innerText = "Camera started ✅";
-    console.log("Camera stream started");
-
-  } catch (err) {
-    console.error(err);
-    alert("Camera permission denied or not available");
+    await faceapi.nets.tinyFaceDetector.loadFromUri("./models");
+    await faceapi.nets.faceLandmark68Net.loadFromUri("./models");
+    console.log("✅ Models loaded");
+    statusText.innerText = "Status: Models loaded ✅";
+  } catch (e) {
+    console.error("❌ Model loading error", e);
+    statusText.innerText = "❌ Model loading failed";
+    return;
   }
-};
 
+  startBtn.onclick = async () => {
+    console.log("▶ Start Camera clicked");
 
-/* ================= TIMER ================= */
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user" }
+      });
 
-function startTimer() {
-  seconds = 0;
-  setInterval(() => {
-    seconds++;
-    timerText.innerText = seconds;
-  }, 1000);
-}
+      video.srcObject = stream;
+      await video.play();
 
-/* ================= FACE RECOGNITION ================= */
+      statusText.innerText = "Status: Camera started ✅";
+      console.log("📷 Camera started");
 
-function startRecognition() {
-  const matcher = new faceapi.FaceMatcher(labeledDescriptors, 0.6);
+      scanTime = 0;
+      timerText.innerText = "Scanner Time: 0 sec";
+      timerInterval = setInterval(() => {
+        scanTime++;
+        timerText.innerText = `Scanner Time: ${scanTime} sec`;
+      }, 1000);
 
-  setInterval(async () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+      detectFace();
 
-    const detection = await faceapi
-      .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
-      .withFaceLandmarks()
-      .withFaceDescriptor();
-
-    if (!detection) {
-      statusText.innerText = "❌ No face detected";
-      confirmBtn.disabled = true;
-      return;
+    } catch (err) {
+      console.error("❌ Camera error", err);
+      alert("Camera permission denied");
     }
+  };
 
-    const resized = faceapi.resizeResults(detection, {
-      width: canvas.width,
-      height: canvas.height
-    });
+  async function detectFace() {
+    const canvas = faceapi.createCanvasFromMedia(video);
+    document.body.append(canvas);
 
-    const result = matcher.findBestMatch(detection.descriptor);
+    const displaySize = {
+      width: video.videoWidth,
+      height: video.videoHeight
+    };
 
-    ctx.lineWidth = 3;
+    faceapi.matchDimensions(canvas, displaySize);
 
-    if (result.label === "unknown") {
-      ctx.strokeStyle = "red";
-      ctx.strokeRect(
-        resized.detection.box.x,
-        resized.detection.box.y,
-        resized.detection.box.width,
-        resized.detection.box.height
-      );
-      statusText.innerText = "⚠️ Unknown face";
-      confirmBtn.disabled = true;
-      return;
-    }
+    setInterval(async () => {
+      const detection = await faceapi.detectSingleFace(
+        video,
+        new faceapi.TinyFaceDetectorOptions()
+      ).withFaceLandmarks();
 
-    ctx.strokeStyle = "lime";
-    ctx.strokeRect(
-      resized.detection.box.x,
-      resized.detection.box.y,
-      resized.detection.box.width,
-      resized.detection.box.height
-    );
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const [name, roll] = result.label.split("_");
-    nameText.innerText = name;
-    rollText.innerText = roll;
-    statusText.innerText = "✅ Face recognized";
-    confirmBtn.disabled = false;
+      if (detection) {
+        faceDetected = true;
+        statusText.innerText = "Status: Face detected ✅";
+        confirmBtn.disabled = false;
 
-    currentMatch = { name, roll };
-  }, 1200);
-}
+        nameText.innerText = "Ayush";
+        rollText.innerText = "72";
 
-/* ================= SAVE ATTENDANCE ================= */
+        const resized = faceapi.resizeResults(detection, displaySize);
+        faceapi.draw.drawDetections(canvas, resized, {
+          boxColor: "green",
+          lineWidth: 3
+        });
 
-confirmBtn.onclick = () => {
-  if (!currentMatch) return;
+        console.log("🙂 Face detected");
 
-  const now = new Date();
+      } else {
+        faceDetected = false;
+        statusText.innerText = "Status: No face ❌";
+        confirmBtn.disabled = true;
+      }
 
-  const row = document.createElement("tr");
-  row.innerHTML = `
-    <td>${currentMatch.name}</td>
-    <td>${currentMatch.roll}</td>
-    <td>${now.toLocaleDateString()}</td>
-    <td>${now.toLocaleTimeString()}</td>
-  `;
+    }, 500);
+  }
 
-  attendanceBody.appendChild(row);
-  confirmBtn.disabled = true;
-};
+  confirmBtn.onclick = () => {
+    if (!faceDetected) return;
 
+    const now = new Date();
+    const row = document.createElement("tr");
+
+    row.innerHTML = `
+      <td>ayush</td>
+      <td>72</td>
+      <td>${now.toLocaleDateString()}</td>
+      <td>${now.toLocaleTimeString()}</td>
+    `;
+
+    attendanceBody.appendChild(row);
+    confirmBtn.disabled = true;
+
+    console.log("📝 Attendance saved");
+  };
 }
