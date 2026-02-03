@@ -11,7 +11,7 @@ const attendanceBody = document.getElementById("attendanceBody");
 const users = {
   "ayush@gmail.com": { name: "Ayush", roll: "72" },
   "alok@gmail.com": { name: "Alok", roll: "15" },
-  "vindyansh@gmail.com": { name: "Vindyansh", roll: "21" }
+  "vidyansh@gmail.com": { name: "Vidyansh", roll: "21" }
 };
 
 let stream = null;
