@@ -1,27 +1,27 @@
-const verifyBtn = document.getElementById("verifyBtn");
-const confirmBtn = document.getElementById("confirmBtn");
 const video = document.getElementById("video");
+const startBtn = document.getElementById("startBtn");
+const confirmBtn = document.getElementById("confirmBtn");
 
 const statusText = document.getElementById("status");
 const nameText = document.getElementById("name");
 const rollText = document.getElementById("roll");
 const attendanceBody = document.getElementById("attendanceBody");
 
-let cameraStream = null;
-let faceCheckInterval = null;
-
-// Simple user database
+// USER DATABASE
 const users = {
   "ayush@gmail.com": { name: "Ayush", roll: "72" },
-  "vidyansh@gmail.com": { name: "Vidyansh", roll: "61" }
-  "alok@gmail.com": { name: "Alok", roll: "71" }
+  "alok@gmail.com": { name: "Alok", roll: "15" },
+  "vindyansh@gmail.com": { name: "Vindyansh", roll: "21" }
 };
 
-verifyBtn.addEventListener("click", async () => {
+let stream = null;
+
+// START CAMERA
+startBtn.addEventListener("click", async () => {
   const email = document.getElementById("email").value.trim();
 
   if (!users[email]) {
-    alert("Email not recognized");
+    alert("Email not found");
     return;
   }
 
@@ -29,38 +29,21 @@ verifyBtn.addEventListener("click", async () => {
   rollText.innerText = users[email].roll;
 
   try {
-    cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
-    video.srcObject = cameraStream;
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "user" }
+    });
 
-    statusText.innerText = "Camera started ⏳";
-    confirmBtn.disabled = true;
+    video.srcObject = stream;
+    statusText.innerText = "Face recognized ✅";
+    confirmBtn.disabled = false;
 
-    startFaceStatusCheck();
-
-  } catch (err) {
+  } catch (error) {
     alert("Camera permission denied");
+    statusText.innerText = "Camera error ❌";
   }
 });
 
-// Fake face presence checker (safe demo logic)
-function startFaceStatusCheck() {
-  if (faceCheckInterval) clearInterval(faceCheckInterval);
-
-  faceCheckInterval = setInterval(() => {
-    if (
-      video.readyState === 4 &&
-      video.videoWidth > 0 &&
-      video.videoHeight > 0
-    ) {
-      statusText.innerText = "Face recognized ✅";
-      confirmBtn.disabled = false;
-    } else {
-      statusText.innerText = "No face detected ❌";
-      confirmBtn.disabled = true;
-    }
-  }, 1000);
-}
-
+// SAVE ATTENDANCE
 confirmBtn.addEventListener("click", () => {
   const now = new Date();
 
