@@ -13,7 +13,8 @@ let faceCheckInterval = null;
 // Simple user database
 const users = {
   "ayush@gmail.com": { name: "Ayush", roll: "72" },
-  "rahul@gmail.com": { name: "Rahul", roll: "15" }
+  "vidyansh@gmail.com": { name: "Vidyansh", roll: "61" }
+  "alok@gmail.com": { name: "Alok", roll: "71" }
 };
 
 verifyBtn.addEventListener("click", async () => {
