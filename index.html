@@ -1,49 +1,89 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Simple Attendance System</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <link rel="stylesheet" href="style.css">
-  <script defer src="script.js"></script>
+  <meta charset="UTF-8" />
+  <title>Face Attendance System</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f4f8;
+      text-align: center;
+      padding: 20px;
+    }
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 360px;
+      margin: auto;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    video {
+      width: 100%;
+      border-radius: 10px;
+      background: black;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 16px;
+      font-size: 16px;
+      border: none;
+      border-radius: 8px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+    button:disabled {
+      background: gray;
+    }
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+    }
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+    }
+    th {
+      background: #007bff;
+      color: white;
+    }
+  </style>
 </head>
 <body>
 
-<h1>Attendance System</h1>
+<h2>Face Attendance System</h2>
 
 <div class="card">
+  <input type="email" id="email" placeholder="Enter Email" style="padding:10px;width:95%" />
 
-  <h2>Email Verification</h2>
+  <video id="video" autoplay playsinline></video>
 
-  <input type="email" id="email" placeholder="Enter your email">
-  <button id="verifyBtn">Verify</button>
+  <button id="startBtn">Start Camera</button>
 
-  <video id="video" autoplay muted playsinline></video>
-
-  <p>Status: <span id="status">Waiting</span></p>
-  <p>Name: <span id="name">---</span></p>
-  <p>Roll: <span id="roll">---</span></p>
+  <p>Status: <b id="status">Idle</b></p>
+  <p>Name: <b id="name">---</b></p>
+  <p>Roll: <b id="roll">---</b></p>
 
   <button id="confirmBtn" disabled>Confirm Attendance</button>
-
 </div>
 
-<div class="card">
-  <h2>Attendance Records</h2>
+<h3>Attendance Records</h3>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Roll</th>
-        <th>Date</th>
-        <th>Time</th>
-      </tr>
-    </thead>
-    <tbody id="attendanceBody"></tbody>
-  </table>
-</div>
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Roll</th>
+      <th>Date</th>
+      <th>Time</th>
+    </tr>
+  </thead>
+  <tbody id="attendanceBody"></tbody>
+</table>
 
+<script src="script.js"></script>
 </body>
 </html>
