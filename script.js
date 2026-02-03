@@ -14,32 +14,52 @@ const users = {
   "vidyansh@gmail.com": { name: "Vidyansh", roll: "21" }
 };
 
+let currentUser = null;
 let stream = null;
 
-// START CAMERA
 startBtn.addEventListener("click", async () => {
   const email = document.getElementById("email").value.trim();
+
+  // RESET UI
+  nameText.innerText = "---";
+  rollText.innerText = "---";
+  confirmBtn.disabled = true;
 
   if (!users[email]) {
     alert("Email not found");
     return;
   }
 
-  nameText.innerText = users[email].name;
-  rollText.innerText = users[email].roll;
+  currentUser = users[email];
 
   try {
-    stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "user" }
-    });
-
+    // STEP 1: Open camera
+    statusText.innerText = "Opening camera...";
+    stream = await navigator.mediaDevices.getUserMedia({ video: true });
     video.srcObject = stream;
-    statusText.innerText = "Face recognized ✅";
-    confirmBtn.disabled = false;
+
+    // STEP 2: Scanning face
+    statusText.innerText = "Scanning face...";
+
+    // STEP 3: Face detected (after 1.5 sec)
+    setTimeout(() => {
+      statusText.innerText = "Face detected";
+
+      // STEP 4: Face recognized (after another 1.5 sec)
+      setTimeout(() => {
+        statusText.innerText = "Face recognized ✅";
+
+        // NOW show name & roll
+        nameText.innerText = currentUser.name;
+        rollText.innerText = currentUser.roll;
+
+        confirmBtn.disabled = false;
+      }, 1500);
+
+    }, 1500);
 
   } catch (error) {
-    alert("Camera permission denied");
-    statusText.innerText = "Camera error ❌";
+    statusText.innerText = "Camera permission denied ❌";
   }
 });
 
