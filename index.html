@@ -1,51 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Face Attendance System</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <link rel="stylesheet" href="style.css">
+  <!-- Style -->
+  <link rel="stylesheet" href="style.css" />
 
   <!-- Face API -->
-  <script src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+  <script defer src="script.js"></script>
 </head>
+
 <body>
 
-<h1>Face Attendance System</h1>
+  <h1>Face Attendance System</h1>
 
-<div class="card">
-  <div class="video-box">
-    <video id="video" muted playsinline></video>
-    <canvas id="overlay"></canvas>
+  <!-- ================= FACE VERIFICATION CARD ================= -->
+  <div class="card">
+
+    <h2>Face Verification</h2>
+
+    <div class="video-wrapper">
+      <video
+        id="video"
+        autoplay
+        muted
+        playsinline
+      ></video>
+
+      <canvas id="overlay"></canvas>
+    </div>
+
+    <button id="startBtn">Start Camera</button>
+
+    <p>Status: <span id="status">Waiting</span></p>
+    <p>Scanner Time: <span id="timer">0</span> sec</p>
+
+    <p><b>Name:</b> <span id="name">---</span></p>
+    <p><b>Roll:</b> <span id="roll">---</span></p>
+
+    <button id="confirmBtn" disabled>Confirm Attendance</button>
+
   </div>
 
-  <button id="startBtn">Start Camera</button>
+  <!-- ================= ATTENDANCE TABLE ================= -->
+  <div class="card">
 
-  <p>Status: <span id="status">Waiting</span></p>
-  <p>Scanner Time: <span id="timer">0</span> sec</p>
-  <p>Name: <b><span id="name">---</span></b></p>
-  <p>Roll: <b><span id="roll">---</span></b></p>
+    <h2>Attendance Records</h2>
 
-  <button id="confirmBtn" disabled>Confirm Attendance</button>
-</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Roll</th>
+          <th>Date</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody id="attendanceBody">
+        <!-- rows added by JS -->
+      </tbody>
+    </table>
 
-<div class="card">
-  <h2>Attendance Records</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Roll</th>
-        <th>Date</th>
-        <th>Time</th>
-      </tr>
-    </thead>
-    <tbody id="attendanceBody"></tbody>
-  </table>
-</div>
+  </div>
 
-<!-- SCRIPT AT BOTTOM (VERY IMPORTANT) -->
-<script src="script.js"></script>
 </body>
 </html>
