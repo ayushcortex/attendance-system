@@ -7,7 +7,10 @@ const nameText = document.getElementById("name");
 const rollText = document.getElementById("roll");
 const attendanceBody = document.getElementById("attendanceBody");
 
-// Simple database
+let cameraStream = null;
+let faceCheckInterval = null;
+
+// Simple user database
 const users = {
   "ayush@gmail.com": { name: "Ayush", roll: "72" },
   "rahul@gmail.com": { name: "Rahul", roll: "15" }
@@ -21,22 +24,41 @@ verifyBtn.addEventListener("click", async () => {
     return;
   }
 
-  // Show details
   nameText.innerText = users[email].name;
   rollText.innerText = users[email].roll;
 
-  // Start camera
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-    video.srcObject = stream;
+    cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+    video.srcObject = cameraStream;
 
-    statusText.innerText = "Yes, face recognized ✅";
-    confirmBtn.disabled = false;
+    statusText.innerText = "Camera started ⏳";
+    confirmBtn.disabled = true;
+
+    startFaceStatusCheck();
 
   } catch (err) {
     alert("Camera permission denied");
   }
 });
+
+// Fake face presence checker (safe demo logic)
+function startFaceStatusCheck() {
+  if (faceCheckInterval) clearInterval(faceCheckInterval);
+
+  faceCheckInterval = setInterval(() => {
+    if (
+      video.readyState === 4 &&
+      video.videoWidth > 0 &&
+      video.videoHeight > 0
+    ) {
+      statusText.innerText = "Face recognized ✅";
+      confirmBtn.disabled = false;
+    } else {
+      statusText.innerText = "No face detected ❌";
+      confirmBtn.disabled = true;
+    }
+  }, 1000);
+}
 
 confirmBtn.addEventListener("click", () => {
   const now = new Date();
